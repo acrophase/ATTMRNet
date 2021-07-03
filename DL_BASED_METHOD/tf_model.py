@@ -171,6 +171,3 @@ class BRUnet(tf.keras.Model):
 
         return d9_ecg
 
-
-
-
