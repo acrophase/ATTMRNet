@@ -2,6 +2,23 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
+class Conv1DTranspose(tf.keras.Model):
+    def __init__(self, filters, kernel_size, strides=2, padding='same'):
+        """
+            input_tensor: tensor, with the shape (batch_size, time_steps, dims)
+            filters: int, output dimension, i.e. the output tensor will have the shape of (batch_size, time_steps, filters)
+            kernel_size: int, size of the convolution kernel
+            strides: int, convolution step size
+            padding: 'same' | 'valid'
+        """
+        super(Conv1DTranspose, self).__init__()
+        self.obj = keras.Sequential([  layers.Lambda(lambda x: tf.expand_dims(x, axis=2)),
+                            layers.Conv2DTranspose(filters=filters, kernel_size=(kernel_size, 1), strides=(strides, 1), padding=padding),
+                            layers.Lambda(lambda x: tf.squeeze(x, axis=2))])
+
+    def call (self,x):
+        return self.obj(x)
+
 class IncBlock(tf.keras.Model):
     def __init__(self, in_channels, out_channels, size = 15, strides = 1):
         super(IncBlock, self).__init__()
@@ -80,48 +97,48 @@ class BRUnet(tf.keras.Model):
                                      layers.LeakyReLU(alpha = 0.2),
                                      IncBlock(1024,1024)])
         
-        self.de1_ecg = keras.Sequential([layers.Conv1DTranspose(512, kernel_size = 1,strides = 1),
+        self.de1_ecg = keras.Sequential([Conv1DTranspose(512, kernel_size = 1,strides = 1),
                                          layers.BatchNormalization(axis = 1),
                                          layers.LeakyReLU(alpha = 0.2),
                                          IncBlock(512,512)])
 
-        self.de2_ecg = keras.Sequential([layers.Conv1DTranspose(512, kernel_size = 1,strides = 2),
+        self.de2_ecg = keras.Sequential([Conv1DTranspose(512, kernel_size = 1,strides = 2),
                                          layers.BatchNormalization(axis = 1),
                                          layers.LeakyReLU(alpha = 0.2),
-                                         layers.Conv1DTranspose(256 , kernel_size = 1),
+                                         Conv1DTranspose(256 , kernel_size = 1,strides = 1),
                                          IncBlock(256,256)])
 
-        self.de3_ecg = keras.Sequential([layers.Conv1DTranspose(256, kernel_size = 1,strides = 1),  #kernel_size = 3
+        self.de3_ecg = keras.Sequential([Conv1DTranspose(256, kernel_size = 1,strides = 1),  #kernel_size = 3
                                          layers.BatchNormalization(axis = 1),
                                          layers.LeakyReLU(alpha = 0.2),
-                                         layers.Conv1DTranspose(128 , kernel_size = 1, strides = 2, padding = 'same'), #kernel_size = 4 strides = 2
+                                         Conv1DTranspose(128 , kernel_size = 1, strides = 2, padding = 'same'), #kernel_size = 4 strides = 2
                                          IncBlock(128,128)])
 
-        self.de4_ecg = keras.Sequential([layers.Conv1DTranspose(64, kernel_size = 1,strides = 1), #kernel_size = 3
+        self.de4_ecg = keras.Sequential([Conv1DTranspose(64, kernel_size = 1,strides = 1), #kernel_size = 3
                                          layers.BatchNormalization(axis = 1),
                                          layers.LeakyReLU(alpha = 0.2),
-                                         layers.Conv1DTranspose(64 , kernel_size = 1,strides = 2),  #kernel_size = 3 strides = 2
+                                         Conv1DTranspose(64 , kernel_size = 1,strides = 2),  #kernel_size = 3 strides = 2
                                          IncBlock(64,64)])
 
-        self.de5_ecg = keras.Sequential([layers.Conv1DTranspose(64, kernel_size = 1,strides = 1,padding = 'same'), #kernel_size = 3
+        self.de5_ecg = keras.Sequential([Conv1DTranspose(64, kernel_size = 1,strides = 1,padding = 'same'), #kernel_size = 3
                                          layers.BatchNormalization(axis = 1),   
                                          layers.LeakyReLU(alpha = 0.2),
-                                         layers.Conv1DTranspose(32 , kernel_size = 1, strides = 2), #kernel_size = 3,strides = 2
+                                         Conv1DTranspose(32 , kernel_size = 1, strides = 2), #kernel_size = 3,strides = 2
                                          IncBlock(32,32)])
 
-        self.de6_ecg = keras.Sequential([layers.Conv1DTranspose(32, kernel_size = 1, strides = 1), #kernel_size = 3
+        self.de6_ecg = keras.Sequential([Conv1DTranspose(32, kernel_size = 1, strides = 1), #kernel_size = 3
                                          layers.BatchNormalization(axis = 1),
                                          layers.LeakyReLU(alpha = 0.2),
-                                         layers.Conv1DTranspose(16 , kernel_size = 1,strides = 2,padding = 'same'), #kernel_size = 3,strides = 2
+                                         Conv1DTranspose(16 , kernel_size = 1,strides = 2,padding = 'same'), #kernel_size = 3,strides = 2
                                          IncBlock(16,16)])
         
-        self.de7_ecg = keras.Sequential([layers.Conv1DTranspose(1, kernel_size = 1,strides = 1,padding = 'same'),
+        self.de7_ecg = keras.Sequential([Conv1DTranspose(1, kernel_size = 1,strides = 1,padding = 'same'),
                                          layers.LeakyReLU(alpha = 0.2)])
 
-        self.de8_ecg = keras.Sequential([layers.Conv1DTranspose(1, kernel_size = 1,strides = 1,padding = 'same'),
+        self.de8_ecg = keras.Sequential([Conv1DTranspose(1, kernel_size = 1,strides = 1,padding = 'same'),
                                          layers.LeakyReLU(alpha = 0.2)])
         
-        self.de9_ecg = keras.Sequential([layers.Conv1DTranspose(1, kernel_size = 1,strides = 1,padding = 'same'),
+        self.de9_ecg = keras.Sequential([Conv1DTranspose(1, kernel_size = 1,strides = 1,padding = 'same'),
                                          layers.LeakyReLU(alpha = 0.2)])
     
     def call (self,x):
