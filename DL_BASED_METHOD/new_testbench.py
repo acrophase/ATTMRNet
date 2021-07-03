@@ -66,6 +66,7 @@ with open('output','rb') as f:
 
 with open('input','rb') as f:
     input_data = pkl.load(f)
+
 input_data = input_data.reshape(input_data.shape[0],input_data.shape[-1],input_data.shape[1])
 
 annotation = pd.read_pickle('C:/Users/ee19s/Desktop/Journal_Work/DL_BASED_METHOD/annotation.pkl')
@@ -92,7 +93,7 @@ test_dataset = test_dataset.batch(128)
 model_input_shape = (128,3)
 
 model  = BRUnet(model_input_shape)
-optimizer = Adam(learning_rate = 0.0001)
+optimizer = Adam(learning_rate = 0.001)
 loss_fn = Huber()
 num_epochs = 5
 
@@ -119,11 +120,10 @@ for epoch in range(num_epochs):
         test_output = model(x_batch_test)
         test_loss = loss_fn(y_batch_test , test_output)
         test_loss_list.append(test_loss)
-    mean_loss = (sum(test_loss_list) / len(test_loss_list))  
+    mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
     if mean_loss < best_loss:
         best_loss = mean_loss
         model.save_weights('C:/Users/ee19s/Desktop/Journal_Work/DL_BASED_METHOD/best_model.h5')
     print("validation loss -- {}".format(mean_loss))
 
-
-
+model.summary()
