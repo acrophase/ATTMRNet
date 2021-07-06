@@ -92,9 +92,9 @@ test_dataset = test_dataset.batch(128)
 model_input_shape = (128,3)
 
 model  = BRUnet(model_input_shape)
-optimizer = Adam(learning_rate = 0.001)
+optimizer = Adam(learning_rate = 0.005)
 loss_fn = Huber()
-num_epochs = 5
+num_epochs = 1000
 
 for epoch in range(num_epochs):
     print("starting the epoch : {}".format(epoch + 1))
@@ -109,8 +109,8 @@ for epoch in range(num_epochs):
         optimizer.apply_gradients(zip(grads, model.trainable_weights)) 
 
         if step%10 == 0:
-            print('Epoch [%d/%d], lter [%d/%d] Loss: %.4f'
-                    %(epoch+1, num_epochs, step+1, len(train_dataset), loss_value))
+            print('Epoch [%d/%d], lter [%d] Loss: %.4f'
+                    %(epoch+1, num_epochs, step+1, loss_value))
     print("net loss -- {}".format(np.mean(np.array(train_loss_list))))
     test_loss_list = []
     best_loss = 10000
