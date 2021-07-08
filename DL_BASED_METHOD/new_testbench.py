@@ -11,7 +11,7 @@ from tf_model import *
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import Huber
-
+import evidential_deep_learning as edl
 
 srate = 700
 win_length = 32*srate
@@ -72,9 +72,9 @@ input_data = input_data.reshape(input_data.shape[0],input_data.shape[-1],input_d
 annotation = pd.read_pickle('C:/Users/ee19s/Desktop/Journal_Work/DL_BASED_METHOD/annotation.pkl')
 reference_rr = (annotation['Reference_RR'].values).reshape(-1,1)
 
-tensor_input = tf.convert_to_tensor(input_data)
-tensor_output = tf.convert_to_tensor(output_data)
-tensor_ref_rr = tf.convert_to_tensor(reference_rr)
+tensor_input = tf.convert_to_tensor(input_data , dtype = 'float32')
+tensor_output = tf.convert_to_tensor(output_data , dtype = 'float32')
+tensor_ref_rr = tf.convert_to_tensor(reference_rr, dtype = 'float32')
 training_ids = annotation['patient_id'] < 13
 
 x_train_data = tensor_input[tf.convert_to_tensor(training_ids.values)]
@@ -94,7 +94,8 @@ model_input_shape = (128,3)
 
 model  = BRUnet(model_input_shape)
 optimizer = Adam(learning_rate = 0.001)
-loss_fn = Huber()
+#loss_fn = Huber()
+#loss_fn=edl.losses.EvidentialRegression
 num_epochs = 5
 
 for epoch in range(num_epochs):
@@ -102,13 +103,17 @@ for epoch in range(num_epochs):
     train_loss_list = []
     for step, (x_batch_train , y_batch_train) in enumerate(train_dataset):
         with tf.GradientTape() as tape:
+            #import pdb;pdb.set_trace()
             output = model(x_batch_train , training = True)
-            loss_value = loss_fn(y_batch_train , output)
+            #mu, v, alpha, beta = tf.split(output, 4, axis=-1)
+            loss_value = edl.losses.EvidentialRegression(y_batch_train,output,coeff = 0.01)
+            #loss_value = loss_fn(y_batch_train , output,coeff = 0.001)
             train_loss_list.append(loss_value)
 
         grads = tape.gradient(loss_value, model.trainable_weights)
         optimizer.apply_gradients(zip(grads, model.trainable_weights)) 
-
+        #
+        # print(train_loss_list)
         if step%10 == 0:
             print('Epoch [%d/%d], lter [%d/%d] Loss: %.4f'
                     %(epoch+1, num_epochs, step+1, len(train_dataset), loss_value))
@@ -118,7 +123,7 @@ for epoch in range(num_epochs):
 
     for step , (x_batch_test,y_batch_test) in enumerate(test_dataset):
         test_output = model(x_batch_test)
-        test_loss = loss_fn(y_batch_test , test_output)
+        test_loss = edl.losses.EvidentialRegression(y_batch_test , test_output , coeff = 0.01)
         test_loss_list.append(test_loss)
     mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
     if mean_loss < best_loss:
