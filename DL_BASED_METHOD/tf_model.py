@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+import evidential_deep_learning as edl
 
 class Conv1DTranspose(tf.keras.Model):
     def __init__(self, filters, kernel_size, strides=2, padding='same'):
@@ -140,6 +141,8 @@ class BRUnet(tf.keras.Model):
         
         self.de9_ecg = keras.Sequential([Conv1DTranspose(1, kernel_size = 1,strides = 1,padding = 'same'),
                                          layers.LeakyReLU(alpha = 0.2)])
+        
+        self.de10_ecg = edl.layers.DenseNormalGamma(1)
     
     def call (self,x):
         
@@ -168,6 +171,10 @@ class BRUnet(tf.keras.Model):
         d7_ecg = self.de7_ecg(d6_ecg)
         d8_ecg = self.de8_ecg(d7_ecg)
         d9_ecg = self.de9_ecg(d8_ecg)
+        d10_ecg = self.de10_ecg(d9_ecg)
 
-        return d9_ecg
+        return d10_ecg
+
+
+
 
