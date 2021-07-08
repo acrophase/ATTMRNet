@@ -93,10 +93,10 @@ test_dataset = test_dataset.batch(128)
 model_input_shape = (128,3)
 
 model  = BRUnet(model_input_shape)
-optimizer = Adam(learning_rate = 0.001)
+optimizer = Adam(learning_rate = 5e-4)
 #loss_fn = Huber()
 #loss_fn=edl.losses.EvidentialRegression
-num_epochs = 5
+num_epochs = 10
 
 for epoch in range(num_epochs):
     print("starting the epoch : {}".format(epoch + 1))
@@ -104,9 +104,10 @@ for epoch in range(num_epochs):
     for step, (x_batch_train , y_batch_train) in enumerate(train_dataset):
         with tf.GradientTape() as tape:
             #import pdb;pdb.set_trace()
+            y_batch_train = tf.expand_dims(y_batch_train , axis = -1)
             output = model(x_batch_train , training = True)
             #mu, v, alpha, beta = tf.split(output, 4, axis=-1)
-            loss_value = edl.losses.EvidentialRegression(y_batch_train,output,coeff = 0.01)
+            loss_value = edl.losses.EvidentialRegression(y_batch_train,output,coeff = 0.001)
             #loss_value = loss_fn(y_batch_train , output,coeff = 0.001)
             train_loss_list.append(loss_value)
 
@@ -122,8 +123,9 @@ for epoch in range(num_epochs):
     best_loss = 10000
 
     for step , (x_batch_test,y_batch_test) in enumerate(test_dataset):
+        y_batch_test = tf.expand_dims(y_batch_test , axis = -1)
         test_output = model(x_batch_test)
-        test_loss = edl.losses.EvidentialRegression(y_batch_test , test_output , coeff = 0.01)
+        test_loss = edl.losses.EvidentialRegression(y_batch_test , test_output , coeff = 0.001)
         test_loss_list.append(test_loss)
     mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
     if mean_loss < best_loss:
