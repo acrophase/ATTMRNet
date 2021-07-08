@@ -20,6 +20,23 @@ class Conv1DTranspose(tf.keras.Model):
     def call (self,x):
         return self.obj(x)
 
+class Conv1DTranspose(tf.keras.Model):
+    def __init__(self, filters, kernel_size, strides=2, padding='same'):
+        """
+            input_tensor: tensor, with the shape (batch_size, time_steps, dims)
+            filters: int, output dimension, i.e. the output tensor will have the shape of (batch_size, time_steps, filters)
+            kernel_size: int, size of the convolution kernel
+            strides: int, convolution step size
+            padding: 'same' | 'valid'
+        """
+        super(Conv1DTranspose, self).__init__()
+        self.obj = keras.Sequential([  layers.Lambda(lambda x: tf.expand_dims(x, axis=2)),
+                            layers.Conv2DTranspose(filters=filters, kernel_size=(kernel_size, 1), strides=(strides, 1), padding=padding),
+                            layers.Lambda(lambda x: tf.squeeze(x, axis=2))])
+
+    def call (self,x):
+        return self.obj(x)
+
 class IncBlock(tf.keras.Model):
     def __init__(self, in_channels, out_channels, size = 15, strides = 1):
         super(IncBlock, self).__init__()

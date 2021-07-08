@@ -16,7 +16,7 @@ import evidential_deep_learning as edl
 srate = 700
 win_length = 32*srate
 
-data_path = 'C:/Users/ee19s/Desktop/HR/ppg_dalia_data'
+data_path = '/media/hticpose/drive1/charan/BR_Uncertainty/ppg_dalia_data'
 data = extract_data(data_path , srate , win_length)
 
 for item in enumerate(data.keys()):
@@ -69,7 +69,7 @@ with open('input','rb') as f:
 
 input_data = input_data.reshape(input_data.shape[0],input_data.shape[-1],input_data.shape[1])
 
-annotation = pd.read_pickle('C:/Users/ee19s/Desktop/Journal_Work/DL_BASED_METHOD/annotation.pkl')
+annotation = pd.read_pickle('/media/hticpose/drive1/charan/BR_Uncertainty/DL_BASED_METHOD/annotation.pkl')
 reference_rr = (annotation['Reference_RR'].values).reshape(-1,1)
 
 tensor_input = tf.convert_to_tensor(input_data , dtype = 'float32')
@@ -115,8 +115,8 @@ for epoch in range(num_epochs):
         #
         # print(train_loss_list)
         if step%10 == 0:
-            print('Epoch [%d/%d], lter [%d/%d] Loss: %.4f'
-                    %(epoch+1, num_epochs, step+1, len(train_dataset), loss_value))
+            print('Epoch [%d/%d], lter [%d] Loss: %.4f'
+                    %(epoch+1, num_epochs, step+1, loss_value))
     print("net loss -- {}".format(np.mean(np.array(train_loss_list))))
     test_loss_list = []
     best_loss = 10000
@@ -128,7 +128,7 @@ for epoch in range(num_epochs):
     mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
     if mean_loss < best_loss:
         best_loss = mean_loss
-        model.save_weights('C:/Users/ee19s/Desktop/Journal_Work/DL_BASED_METHOD/best_model.h5')
+        model.save_weights('/media/hticpose/drive1/charan/BR_Uncertainty/DL_BASED_METHOD/best_model.h5')
     print("validation loss -- {}".format(mean_loss))
 
 model.summary()
