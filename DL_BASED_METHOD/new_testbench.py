@@ -12,6 +12,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import Huber
 import evidential_deep_learning as edl
+import datetime
 
 srate = 700
 win_length = 32*srate
@@ -96,7 +97,16 @@ model  = BRUnet(model_input_shape)
 optimizer = Adam(learning_rate = 5e-4)
 #loss_fn = Huber()
 #loss_fn=edl.losses.EvidentialRegression
-num_epochs = 10
+train_loss = tf.keras.metrics.Mean('train_loss', dtype=tf.float32)
+test_loss = tf.keras.metrics.Mean('test_loss', dtype=tf.float32)
+
+current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+train_log_dir = 'logs/gradient_tape/' + current_time + '/train'
+test_log_dir = 'logs/gradient_tape/' + current_time + '/test'
+train_summary_writer = tf.summary.create_file_writer(train_log_dir)
+test_summary_writer = tf.summary.create_file_writer(test_log_dir)
+
+num_epochs = 5
 
 for epoch in range(num_epochs):
     print("starting the epoch : {}".format(epoch + 1))
@@ -107,30 +117,38 @@ for epoch in range(num_epochs):
             y_batch_train = tf.expand_dims(y_batch_train , axis = -1)
             output = model(x_batch_train , training = True)
             #mu, v, alpha, beta = tf.split(output, 4, axis=-1)
-            loss_value = edl.losses.EvidentialRegression(y_batch_train,output,coeff = 0.001)
+            loss_value = edl.losses.EvidentialRegression(y_batch_train,output,coeff = 1e-3)
             #loss_value = loss_fn(y_batch_train , output,coeff = 0.001)
             train_loss_list.append(loss_value)
 
         grads = tape.gradient(loss_value, model.trainable_weights)
         optimizer.apply_gradients(zip(grads, model.trainable_weights)) 
-        #
+        train_loss(loss_value)
         # print(train_loss_list)
+        with train_summary_writer.as_default():
+            tf.summary.scalar('loss', train_loss.result(), step=epoch)
+
         if step%10 == 0:
             print('Epoch [%d/%d], lter [%d] Loss: %.4f'
                     %(epoch+1, num_epochs, step+1, loss_value))
     print("net loss -- {}".format(np.mean(np.array(train_loss_list))))
     test_loss_list = []
-    best_loss = 10000
+    best_loss = 100000
 
     for step , (x_batch_test,y_batch_test) in enumerate(test_dataset):
         y_batch_test = tf.expand_dims(y_batch_test , axis = -1)
         test_output = model(x_batch_test)
-        test_loss = edl.losses.EvidentialRegression(y_batch_test , test_output , coeff = 0.001)
-        test_loss_list.append(test_loss)
+        test_loss_val = edl.losses.EvidentialRegression(y_batch_test , test_output , coeff = 1e-3)
+        test_loss(test_loss_val)
+        test_loss_list.append(test_loss_val)
+        with test_summary_writer.as_default():
+            tf.summary.scalar('loss', test_loss.result(), step=epoch)
     mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
     if mean_loss < best_loss:
         best_loss = mean_loss
         model.save_weights('/media/hticpose/drive1/charan/BR_Uncertainty/DL_BASED_METHOD/best_model.h5')
     print("validation loss -- {}".format(mean_loss))
+    print(test_loss.result())
+    train_loss.reset_states()
+    test_loss.reset_states()
 
-model.summary()
