@@ -67,7 +67,8 @@ class BRUnet(tf.keras.Model):
         self.en1 = keras.Sequential([layers.Conv1D(32,kernel_size = 3, padding = 'same',input_shape = in_channels),
                                     layers.BatchNormalization(axis = 1),
                                     layers.LeakyReLU(alpha = 0.2),
-                                    layers.Conv1D(32, kernel_size = 5 , strides = 2 , padding = 'same')])
+                                    layers.Conv1D(32, kernel_size = 5 , strides = 2 , padding = 'same'),
+                                    IncBlock(32,32)])
 
         self.en2 = keras.Sequential([layers.Conv1D(64, kernel_size = 3 , padding = 'same'),
                                      layers.BatchNormalization(axis = 1),
@@ -171,9 +172,9 @@ class BRUnet(tf.keras.Model):
         d7_ecg = self.de7_ecg(d6_ecg)
         d8_ecg = self.de8_ecg(d7_ecg)
         d9_ecg = self.de9_ecg(d8_ecg)
-        #d10_ecg = self.de10_ecg(d9_ecg)
+        d10_ecg = self.de10_ecg(d9_ecg)
 
-        return d9_ecg    #d10_ecg
+        return  d10_ecg
 
 
 class BRUnet_Multi_resp(tf.keras.Model):
@@ -286,20 +287,20 @@ class BRUnet_Multi_resp(tf.keras.Model):
         out_1 = self.en7_p(e6)
         out_2 = self.en8_p(out_1)
         out_3 = self.en9_p(out_2)
-        out_4 = self.fc(tf.squeeze(out_3,-1))
+        out_4 = self.fc(tf.squeeze(out_3,axis = -1))
 
         d1_ecg = self.de1_ecg(e6)
-        cat_ecg = torch.cat([d1_ecg,e5],1)
+        cat_ecg = layers.concatenate([d1_ecg,e5])
         d2_ecg = self.de2_ecg(cat_ecg)
-        cat_ecg = torch.cat([d2_ecg,e4],1)
+        cat_ecg = layers.concatenate([d2_ecg,e4])
         d3_ecg = self.de3_ecg(cat_ecg)
-        cat_ecg = torch.cat([d3_ecg,e3],1)
+        cat_ecg = layers.concatenate([d3_ecg,e3])
         d4_ecg = self.de4_ecg(cat_ecg)
         d4_ecg = d4_ecg[:,:,:-1]
-        cat_ecg = torch.cat([d4_ecg,e2],1)
+        cat_ecg = layers.concatenate([d4_ecg,e2])
         d5_ecg = self.de5_ecg(cat_ecg)
         d5_ecg = d5_ecg[:,:,:-1]
-        cat_ecg = torch.cat([d5_ecg,e1],1)
+        cat_ecg = layers.concatenate([d5_ecg,e1])
         d6_ecg = self.de6_ecg(cat_ecg)[:,:,:-1]
         d7_ecg = self.de7_ecg(d6_ecg)
         d8_ecg = self.de8_ecg(d7_ecg)
