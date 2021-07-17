@@ -143,7 +143,7 @@ class BRUnet(tf.keras.Model):
         self.de9_ecg = keras.Sequential([Conv1DTranspose(1, kernel_size = 1,strides = 1,padding = 'same'),
                                          layers.LeakyReLU(alpha = 0.2)])
         
-        self.de10_ecg = edl.layers.DenseNormalGamma(1)
+        self.ev1 = edl.layers.DenseNormalGamma(1)
     
     def call (self,x):
         
@@ -172,7 +172,7 @@ class BRUnet(tf.keras.Model):
         d7_ecg = self.de7_ecg(d6_ecg)
         d8_ecg = self.de8_ecg(d7_ecg)
         d9_ecg = self.de9_ecg(d8_ecg)
-        d10_ecg = self.de10_ecg(d9_ecg)
+        d10_ecg = self.ev1(d9_ecg)
 
         return  d10_ecg
 
@@ -233,6 +233,8 @@ class BRUnet_Multi_resp(tf.keras.Model):
         
         self.fc = layers.Dense(1)
 
+        self.ev1 = edl.layers.DenseNormalGamma(1)
+
         self.de1_ecg = keras.Sequential([Conv1DTranspose(512, kernel_size = 1,strides = 1),
                                          layers.BatchNormalization(axis = 1),
                                          layers.LeakyReLU(alpha = 0.2),
@@ -276,6 +278,8 @@ class BRUnet_Multi_resp(tf.keras.Model):
         
         self.de9_ecg = keras.Sequential([Conv1DTranspose(1, kernel_size = 1,strides = 1,padding = 'same'),
                                          layers.LeakyReLU(alpha = 0.2)])
+
+        self.ev2 = edl.layers.DenseNormalGamma(1)
     
     def call(self,x):
         
@@ -290,6 +294,8 @@ class BRUnet_Multi_resp(tf.keras.Model):
         out_2 = self.en8_p(out_1)
         out_3 = self.en9_p(out_2)
         out_4 = self.fc(out_3)
+
+        out_5 = self.ev1(out_4)
         #import pdb;pdb.set_trace()
         d1_ecg = self.de1_ecg(e6)
         cat_ecg = layers.concatenate([d1_ecg,e5])
@@ -307,8 +313,9 @@ class BRUnet_Multi_resp(tf.keras.Model):
         d7_ecg = self.de7_ecg(d6_ecg)
         d8_ecg = self.de8_ecg(d7_ecg)
         d9_ecg = self.de9_ecg(d8_ecg)
+        d10_ecg = self.ev2(d9_ecg)
 
-        return d9_ecg, out_4
+        return d10_ecg, out_5
 
 
 
