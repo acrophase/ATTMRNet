@@ -143,7 +143,7 @@ class BRUnet(tf.keras.Model):
         self.de9_ecg = keras.Sequential([Conv1DTranspose(1, kernel_size = 1,strides = 1,padding = 'same'),
                                          layers.LeakyReLU(alpha = 0.2)])
         
-        #self.de10_ecg = edl.layers.DenseNormalGamma(1)
+        self.de10_ecg = edl.layers.DenseNormalGamma(1)
     
     def call (self,x):
         
@@ -216,17 +216,17 @@ class BRUnet_Multi_resp(tf.keras.Model):
                                       layers.LeakyReLU(alpha = 0.2),
                                       IncBlock(1024,1024)])
         
-        self.en7_p = keras.Sequential([keras.Conv1D(128 , kernel_size = 4 , strides = 2 , padding = 'same'),
+        self.en7_p = keras.Sequential([layers.Conv1D(128 , kernel_size = 4 , strides = 2 , padding = 'same'),
                                        layers.BatchNormalization(axis = 1),
                                        layers.LeakyReLU(alpha = 0.2),
                                        IncBlock(128,128)])
         
-        self.en8_p = keras.Sequential([keras.Conv1D(64 , kernel_size = 4 , strides = 2, padding = 'same'),
+        self.en8_p = keras.Sequential([layers.Conv1D(64 , kernel_size = 4 , strides = 2, padding = 'same'),
                                        layers.BatchNormalization(axis = 1),
                                        layers.LeakyReLU(alpha = 0.2),
                                        IncBlock(64,64)])
         
-        self.en9_p = keras.Sequential([keras.Conv1D(4 , kernel_size = 4 , strides = 2, padding = 'same'),
+        self.en9_p = keras.Sequential([layers.Conv1D(4 , kernel_size = 4 , strides = 2, padding = 'same'),
                                       layers.BatchNormalization(axis = 1),
                                       layers.LeakyReLU(alpha = 0.2),
                                       IncBlock(4,4)])
@@ -238,10 +238,10 @@ class BRUnet_Multi_resp(tf.keras.Model):
                                          layers.LeakyReLU(alpha = 0.2),
                                          IncBlock(512,512)])
 
-        self.de2_ecg = keras.Sequential([Conv1DTranspose(512 , kernel_size= 1),
+        self.de2_ecg = keras.Sequential([Conv1DTranspose(512 , kernel_size= 3 , strides = 1),
                                         layers.BatchNormalization(axis = 1),
                                         layers.LeakyReLU(alpha=0.2),
-                                        Conv1DTranspose(256 , kernel_size= 1),
+                                        Conv1DTranspose(256 , kernel_size= 4, strides = 1),
                                         IncBlock(256,256)])
         
         self.de3_ecg = keras.Sequential([layers.Conv1D(256, kernel_size=3,padding='same'),
@@ -250,10 +250,10 @@ class BRUnet_Multi_resp(tf.keras.Model):
                                          Conv1DTranspose(128 , kernel_size= 4 , strides=2),
                                          IncBlock(128,128)])
 
-        self.de4_ecg = keras.Sequential([layers.Conv1D(128 , kernel_size=3 , strides=1 , padding='same'),
+        self.de4_ecg = keras.Sequential([layers.Conv1D(128 , kernel_size=1 , strides=1 , padding='same'),
                                          layers.BatchNormalization(axis = 1),
                                          layers.LeakyReLU(alpha = 0.2),
-                                         layers.Conv1DTranspose(64 , kernel_size= 3 , strides = 2),
+                                         layers.Conv1DTranspose(64 , kernel_size= 1 , strides = 2),
                                          IncBlock(64,64)])
         
         self.de5_ecg = keras.Sequential([layers.Conv1D(64 , kernel_size= 3 , strides=1, padding='same'),
@@ -278,17 +278,19 @@ class BRUnet_Multi_resp(tf.keras.Model):
                                          layers.LeakyReLU(alpha = 0.2)])
     
     def call(self,x):
+        
         e1 = self.en1(x)
         e2 = self.en2(e1)
         e3 = self.en3(e2)
         e4 = self.en4(e3)
         e5 = self.en5(e4)
         e6 = self.en6(e5)
+        
         out_1 = self.en7_p(e6)
         out_2 = self.en8_p(out_1)
         out_3 = self.en9_p(out_2)
-        out_4 = self.fc(tf.squeeze(out_3,axis = -1))
-
+        out_4 = self.fc(out_3)
+        #import pdb;pdb.set_trace()
         d1_ecg = self.de1_ecg(e6)
         cat_ecg = layers.concatenate([d1_ecg,e5])
         d2_ecg = self.de2_ecg(cat_ecg)
