@@ -169,7 +169,7 @@ if config.lower() == "confd":
 
     model  = BRUnet_Multi_resp(model_input_shape)
     optimizer = Adam(learning_rate = lr)
-    loss_fn = Huber()
+    #loss_fn = Huber()
     #loss_fn=edl.losses.EvidentialRegression
     for epoch in range(num_epochs):
         print("starting the epoch : {}".format(epoch + 1))
@@ -180,9 +180,10 @@ if config.lower() == "confd":
                 y_batch_train = tf.expand_dims(y_batch_train , axis = -1)
                 output, out_rr = model(x_batch_train , training = True)
                 #mu, v, alpha, beta = tf.split(output, 4, axis=-1)
-                #loss_value = edl.losses.EvidentialRegression(y_batch_train,output,coeff = coeff_val)
-                loss_value = loss_fn(y_batch_train , output)
-                loss_value_rr = loss_fn(x_batch_train_ref_rr, out_rr)
+                loss_value = edl.losses.EvidentialRegression(y_batch_train,output,coeff = coeff_val)
+                #loss_value = loss_fn(y_batch_train , output)
+                loss_value_rr = edl.losses.EvidentialRegression(x_batch_train_ref_rr,out_rr,coeff = coeff_val)
+                #loss_value_rr = loss_fn(x_batch_train_ref_rr, out_rr)
                 net_loss_value = loss_value + lamda *loss_value_rr
                 train_loss_list.append(net_loss_value)
 
@@ -204,8 +205,10 @@ if config.lower() == "confd":
             y_batch_test = tf.expand_dims(y_batch_test , axis = -1)
             test_output,test_out_rr = model(x_batch_test)
             #test_loss_val = edl.losses.EvidentialRegression(y_batch_test , test_output , coeff = coeff_val)
-            test_loss_resp = loss_fn(y_batch_test , test_output)
-            test_loss_rr = loss_fn(x_batch_test_ref_rr , test_out_rr)
+            #test_loss_resp = loss_fn(y_batch_test , test_output)
+            test_loss_resp = edl.losses.EvidentialRegression(y_batch_test , test_output , coeff = coeff_val)
+            #test_loss_rr = loss_fn(x_batch_test_ref_rr , test_out_rr)
+            test_loss_resp = edl.losses.EvidentialRegression(x_batch_test_ref_rr , test_out_rr , coeff = coeff_val)
             test_loss_val = test_loss_resp + lamda*test_loss_rr
             test_loss(test_loss_val)
             test_loss_list.append(test_loss_val)
