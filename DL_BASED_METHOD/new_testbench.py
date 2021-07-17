@@ -161,6 +161,7 @@ if config.lower() == "confc":
         test_loss.reset_states()
 
 if config.lower() == "confd":
+    lamda = 0.01
     train_dataset = tf.data.Dataset.from_tensor_slices((x_train_data , y_train_data, x_train_ref_rr))
     train_dataset = train_dataset.shuffle(len(x_train_data)).batch(128)
     test_dataset = tf.data.Dataset.from_tensor_slices((x_test_data , y_test_data, x_test_ref_rr))
@@ -182,7 +183,7 @@ if config.lower() == "confd":
                 #loss_value = edl.losses.EvidentialRegression(y_batch_train,output,coeff = coeff_val)
                 loss_value = loss_fn(y_batch_train , output)
                 loss_value_rr = loss_fn(x_batch_train_ref_rr, out_rr)
-                net_loss_value = loss_value + loss_value_rr
+                net_loss_value = loss_value + lamda *loss_value_rr
                 train_loss_list.append(net_loss_value)
 
             grads = tape.gradient(net_loss_value, model.trainable_weights)
@@ -203,9 +204,9 @@ if config.lower() == "confd":
             y_batch_test = tf.expand_dims(y_batch_test , axis = -1)
             test_output,test_out_rr = model(x_batch_test)
             #test_loss_val = edl.losses.EvidentialRegression(y_batch_test , test_output , coeff = coeff_val)
-            test_loss = loss_fn(y_batch_test , test_output)
+            test_loss_resp = loss_fn(y_batch_test , test_output)
             test_loss_rr = loss_fn(x_batch_test_ref_rr , test_out_rr)
-            test_loss_val = test_loss + test_loss_rr
+            test_loss_val = test_loss_resp + lamda*test_loss_rr
             test_loss(test_loss_val)
             test_loss_list.append(test_loss_val)
             with test_summary_writer.as_default():
