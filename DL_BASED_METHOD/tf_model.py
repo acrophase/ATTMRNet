@@ -290,7 +290,7 @@ class BRUnet_Multi_resp(tf.keras.Model):
         out_2 = self.en8_p(out_1)
         out_3 = self.en9_p(out_2)
         out_4 = self.fc(out_3)
-        import pdb;pdb.set_trace()
+        #import pdb;pdb.set_trace()
         d1_ecg = self.de1_ecg(e6)
         cat_ecg = layers.concatenate([d1_ecg,e5])
         d2_ecg = self.de2_ecg(cat_ecg)
