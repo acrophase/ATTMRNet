@@ -255,7 +255,7 @@ class BRUnet_Multi_resp(tf.keras.Model):
         self.de4_ecg = keras.Sequential([layers.Conv1D(128 , kernel_size=1 , strides=1 , padding='same'),
                                          layers.BatchNormalization(axis = 1),
                                          layers.LeakyReLU(alpha = 0.2),
-                                         layers.Conv1DTranspose(64 , kernel_size= 1 , strides = 2),
+                                         Conv1DTranspose(64 , kernel_size= 1 , strides = 2),
                                          IncBlock(64,64)])
         
         self.de5_ecg = keras.Sequential([layers.Conv1D(64 , kernel_size= 3 , strides=1, padding='same'),
