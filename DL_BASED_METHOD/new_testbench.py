@@ -121,6 +121,7 @@ for item in config_list:
         optimizer = Adam(learning_rate = lr)
         #loss_fn = Huber()
         #loss_fn=edl.losses.EvidentialRegression
+        print("Starting the training for : {}".format(item))
         for epoch in range(num_epochs):
             print("starting the epoch : {}".format(epoch + 1))
             train_loss_list = []
@@ -189,6 +190,7 @@ for item in config_list:
         optimizer = Adam(learning_rate = lr)
         #loss_fn = Huber()
         #loss_fn=edl.losses.EvidentialRegression
+        print("Starting the training for : {}".format(item))
         for epoch in range(num_epochs):
             print("starting the epoch : {}".format(epoch + 1))
             train_loss_list = []
@@ -263,6 +265,7 @@ for item in config_list:
         model  = BRUnet_Encoder(model_input_shape)
         optimizer = Adam(learning_rate = lr)
         loss_fn = Huber()
+        print("Starting the training for : {}".format(item))
         for epoch in range(num_epochs):
             print("starting the epoch : {}".format(epoch + 1))
             train_loss_list = []
