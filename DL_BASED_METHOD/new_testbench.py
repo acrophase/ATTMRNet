@@ -19,7 +19,7 @@ srate = 700
 win_length = 32*srate
 lr = 1e-4
 coeff_val = 1e-2
-num_epochs = 5
+num_epochs = 1000
 model_input_shape = (128,3)
 
 #config = input("Enter the configuration :")
