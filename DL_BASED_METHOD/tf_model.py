@@ -373,6 +373,8 @@ class BRUnet_Encoder(tf.keras.Model):
         
         self.fc = layers.Dense(1)
 
+        self.ev1 = edl.layers.DenseNormalGamma(1)
+
     def call(self,x):
         e1 = self.en1(x)
         e2 = self.en2(e1)
@@ -384,7 +386,8 @@ class BRUnet_Encoder(tf.keras.Model):
         out_2 = self.en8_p(out_1)
         out_3 = self.en9_p(out_2)
         out_4 = self.fc(out_3)
-        return out_4
+        out_5 = self.ev1(out_4)
+        return out_5
 
 
         
