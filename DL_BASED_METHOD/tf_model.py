@@ -65,71 +65,71 @@ class BRUnet(tf.keras.Model):
         #in_channels = shape[1]
         
         self.en1 = keras.Sequential([layers.Conv1D(32,kernel_size = 3, padding = 'same',input_shape = in_channels),
-                                    layers.BatchNormalization(axis = 1),
+                                    layers.BatchNormalization(axis = -1),
                                     layers.LeakyReLU(alpha = 0.2),
                                     layers.Conv1D(32, kernel_size = 5 , strides = 2 , padding = 'same'),
                                     IncBlock(32,32)])
 
         self.en2 = keras.Sequential([layers.Conv1D(64, kernel_size = 3 , padding = 'same'),
-                                     layers.BatchNormalization(axis = 1),
+                                     layers.BatchNormalization(axis = -1),
                                      layers.LeakyReLU(alpha = 0.2),
                                      layers.Conv1D(64 , kernel_size = 5,strides = 2, padding = 'same'),
                                      IncBlock(64,64)])
 
         self.en3 = keras.Sequential([layers.Conv1D(128, kernel_size = 3 , padding = 'same'),
-                                     layers.BatchNormalization(axis = 1),
+                                     layers.BatchNormalization(axis = -1),
                                      layers.LeakyReLU(alpha = 0.2),
                                      layers.Conv1D(128 , kernel_size = 3,strides = 2, padding = 'same'),
                                      IncBlock(128,128)])
 
         self.en4 = keras.Sequential([layers.Conv1D(256, kernel_size = 3 , padding = 'same'),
-                                     layers.BatchNormalization(axis = 1),
+                                     layers.BatchNormalization(axis = -1),
                                      layers.LeakyReLU(alpha = 0.2),
                                      layers.Conv1D(256 , kernel_size = 4,strides = 2,padding = 'same'),
                                      IncBlock(256,256)])
 
         self.en5 = keras.Sequential([layers.Conv1D(512, kernel_size = 3 , padding = 'same'),
-                                     layers.BatchNormalization(axis = 1),
+                                     layers.BatchNormalization(axis = -1),
                                      layers.LeakyReLU(alpha = 0.2),
                                      layers.Conv1D(512 , kernel_size = 4,strides = 2,padding = 'same'),
                                      IncBlock(512,512)])
 
         self.en6 = keras.Sequential([layers.Conv1D(1024, kernel_size = 3 , padding = 'same'),
-                                     layers.BatchNormalization(axis = 1),
+                                     layers.BatchNormalization(axis = -1),
                                      layers.LeakyReLU(alpha = 0.2),
                                      IncBlock(1024,1024)])
         
         self.de1_ecg = keras.Sequential([Conv1DTranspose(512, kernel_size = 1,strides = 1),
-                                         layers.BatchNormalization(axis = 1),
+                                         layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),
                                          IncBlock(512,512)])
 
         self.de2_ecg = keras.Sequential([Conv1DTranspose(512, kernel_size = 1,strides = 2),
-                                         layers.BatchNormalization(axis = 1),
+                                         layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),
                                          Conv1DTranspose(256 , kernel_size = 1,strides = 1),
                                          IncBlock(256,256)])
 
         self.de3_ecg = keras.Sequential([layers.Conv1D(256, kernel_size = 1,strides = 1),  #kernel_size = 3
-                                         layers.BatchNormalization(axis = 1),
+                                         layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),
                                          Conv1DTranspose(128 , kernel_size = 4, strides = 2, padding = 'same'), #kernel_size = 4 strides = 2
                                          IncBlock(128,128)])
 
         self.de4_ecg = keras.Sequential([layers.Conv1D(128, kernel_size = 1,strides = 1), #kernel_size = 3
-                                         layers.BatchNormalization(axis = 1),
+                                         layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),
                                          Conv1DTranspose(64 , kernel_size = 3,strides = 2),  #kernel_size = 3 strides = 2
                                          IncBlock(64,64)])
 
         self.de5_ecg = keras.Sequential([layers.Conv1D(64, kernel_size = 1,strides = 1,padding = 'same'), #kernel_size = 3
-                                         layers.BatchNormalization(axis = 1),   
+                                         layers.BatchNormalization(axis = -1),   
                                          layers.LeakyReLU(alpha = 0.2),
                                          Conv1DTranspose(32 , kernel_size = 3, strides = 2), #kernel_size = 3,strides = 2
                                          IncBlock(32,32)])
 
         self.de6_ecg = keras.Sequential([layers.Conv1D(32, kernel_size = 1, strides = 1), #kernel_size = 3
-                                         layers.BatchNormalization(axis = 1),
+                                         layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),
                                          Conv1DTranspose(16 , kernel_size = 3,strides = 2,padding = 'same'), #kernel_size = 3,strides = 2
                                          IncBlock(16,16)])
@@ -182,52 +182,52 @@ class BRUnet_Multi_resp(tf.keras.Model):
         super(BRUnet_Multi_resp,self).__init__()
 
         self.en1 = keras.Sequential([layers.Conv1D(32,kernel_size = 3, padding = 'same',input_shape = in_channels),
-                                    layers.BatchNormalization(axis = 1),
+                                    layers.BatchNormalization(axis = -1),
                                     layers.LeakyReLU(alpha = 0.2),
                                     layers.Conv1D(32, kernel_size = 5 , strides = 2 , padding = 'same'),
                                     IncBlock(32,32)])
 
         self.en2 = keras.Sequential([layers.Conv1D(64,kernel_size = 3,padding = 'same'),
-                                     layers.BatchNormalization(axis = 1),
+                                     layers.BatchNormalization(axis = -1),
                                      layers.LeakyReLU(alpha = 0.2),
                                      layers.Conv1D(64, kernel_size=5, strides=2, padding='same'),
                                      IncBlock(64,64)])
 
         self.en3 = keras.Sequential([layers.Conv1D(128, kernel_size=3, padding='same'),
-                                      layers.BatchNormalization(axis = 1),
+                                      layers.BatchNormalization(axis = -1),
                                       layers.LeakyReLU(alpha = 0.2),
                                       layers.Conv1D(128, kernel_size= 3, strides=2, padding = 'same'),
                                       IncBlock(128,128)])
 
         self.en4 = keras.Sequential([layers.Conv1D(256, kernel_size= 3, padding = 'same'),
-                                     layers.BatchNormalization(axis = 1),
+                                     layers.BatchNormalization(axis = -1),
                                      layers.LeakyReLU(alpha = 0.2),
                                      layers.Conv1D(256 , kernel_size= 4, strides = 2 , padding = 'same'),
                                      IncBlock(256,256)])
 
         self.en5 = keras.Sequential([layers.Conv1D(512, kernel_size = 3, padding = 'same'),
-                                     layers.BatchNormalization(axis = 1),
+                                     layers.BatchNormalization(axis = -1),
                                      layers.LeakyReLU(alpha = 0.2),
                                      layers.Conv1D(512 , kernel_size = 3 , padding = 'same'),
                                      IncBlock(512,512)])
         
         self.en6 = keras.Sequential([layers.Conv1D(1024, kernel_size=3 , padding = 'same'),
-                                      layers.BatchNormalization(axis = 1),
+                                      layers.BatchNormalization(axis = -1),
                                       layers.LeakyReLU(alpha = 0.2),
                                       IncBlock(1024,1024)])
         
         self.en7_p = keras.Sequential([layers.Conv1D(128 , kernel_size = 4 , strides = 2 , padding = 'same'),
-                                       layers.BatchNormalization(axis = 1),
+                                       layers.BatchNormalization(axis = -1),
                                        layers.LeakyReLU(alpha = 0.2),
                                        IncBlock(128,128)])
         
         self.en8_p = keras.Sequential([layers.Conv1D(64 , kernel_size = 4 , strides = 2, padding = 'same'),
-                                       layers.BatchNormalization(axis = 1),
+                                       layers.BatchNormalization(axis = -1),
                                        layers.LeakyReLU(alpha = 0.2),
                                        IncBlock(64,64)])
         
         self.en9_p = keras.Sequential([layers.Conv1D(4 , kernel_size = 4 , strides = 2, padding = 'same'),
-                                      layers.BatchNormalization(axis = 1),
+                                      layers.BatchNormalization(axis = -1),
                                       layers.LeakyReLU(alpha = 0.2),
                                       IncBlock(4,4)])
         
@@ -236,36 +236,36 @@ class BRUnet_Multi_resp(tf.keras.Model):
         self.ev1 = edl.layers.DenseNormalGamma(1)
 
         self.de1_ecg = keras.Sequential([Conv1DTranspose(512, kernel_size = 1,strides = 1),
-                                         layers.BatchNormalization(axis = 1),
+                                         layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),
                                          IncBlock(512,512)])
 
         self.de2_ecg = keras.Sequential([Conv1DTranspose(512 , kernel_size= 3 , strides = 1),
-                                        layers.BatchNormalization(axis = 1),
+                                        layers.BatchNormalization(axis = -1),
                                         layers.LeakyReLU(alpha=0.2),
                                         Conv1DTranspose(256 , kernel_size= 4, strides = 1),
                                         IncBlock(256,256)])
         
         self.de3_ecg = keras.Sequential([layers.Conv1D(256, kernel_size=3,padding='same'),
-                                         layers.BatchNormalization(axis = 1),
+                                         layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),
                                          Conv1DTranspose(128 , kernel_size= 4 , strides=2),
                                          IncBlock(128,128)])
 
         self.de4_ecg = keras.Sequential([layers.Conv1D(128 , kernel_size=1 , strides=1 , padding='same'),
-                                         layers.BatchNormalization(axis = 1),
+                                         layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),
                                          Conv1DTranspose(64 , kernel_size= 1 , strides = 2),
                                          IncBlock(64,64)])
         
         self.de5_ecg = keras.Sequential([layers.Conv1D(64 , kernel_size= 3 , strides=1, padding='same'),
-                                         layers.BatchNormalization(axis = 1),
+                                         layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),
                                          Conv1DTranspose(32 , kernel_size=3, strides=2),
                                          IncBlock(32,32)])
         
         self.de6_ecg = keras.Sequential([layers.Conv1D(32 , kernel_size = 3 , strides = 1 , padding = 'same'),
-                                        layers.BatchNormalization(axis = 1),
+                                        layers.BatchNormalization(axis = -1),
                                         layers.LeakyReLU(alpha = 0.2),
                                         Conv1DTranspose(16 , kernel_size=3 , strides = 2, padding='same'),
                                         IncBlock(16,16)])
@@ -322,52 +322,52 @@ class BRUnet_Encoder(tf.keras.Model):
         super(BRUnet_Encoder, self).__init__()
 
         self.en1 = keras.Sequential([layers.Conv1D(32,kernel_size = 3, padding = 'same', input_shape = in_channels ),
-                                    layers.BatchNormalization(axis = 1),
+                                    layers.BatchNormalization(axis = -1),
                                     layers.LeakyReLU(alpha = 0.2),
                                     layers.Conv1D(32, kernel_size = 5, strides = 2,padding = 'same'),
                                     IncBlock(32,32)])
         
         self.en2 = keras.Sequential([layers.Conv1D(64 , kernel_size = 3 , padding = 'same'),
-                                      layers.BatchNormalization(axis = 1),
+                                      layers.BatchNormalization(axis = -1),
                                       layers.LeakyReLU(alpha = 0.2),
                                       layers.Conv1D(64 , kernel_size = 5 , strides = 2, padding = 'same'),
                                       IncBlock(64,64)])
         
         self.en3 = keras.Sequential([layers.Conv1D(128, kernel_size = 3 , padding = 'same'),
-                                     layers.BatchNormalization(axis = 1),
+                                     layers.BatchNormalization(axis = -1),
                                      layers.LeakyReLU(alpha = 0.2),
                                      layers.Conv1D(128,kernel_size = 3 , strides = 2, padding = 'same'),
                                      IncBlock(128,128)])
         
         self.en4 = keras.Sequential([layers.Conv1D(256 , kernel_size = 3,padding = 'same'),
-                                      layers.BatchNormalization(axis = 1),
+                                      layers.BatchNormalization(axis = -1),
                                       layers.LeakyReLU(alpha = 0.2),
                                       layers.Conv1D(256 , kernel_size = 4 , strides = 2 , padding = 'same'),
                                       IncBlock(256,256)])
         
         self.en5 = keras.Sequential([layers.Conv1D(512 , kernel_size = 3 , padding = 'same'),
-                                     layers.BatchNormalization(axis = 1),
+                                     layers.BatchNormalization(axis = -1),
                                      layers.LeakyReLU(alpha = 0.2),
                                      layers.Conv1D(512 , kernel_size = 3 , padding = 'same'),
                                      IncBlock(512,512)])
         
         self.en6 = keras.Sequential([layers.Conv1D(1024, kernel_size = 3 , padding = 'same'),
-                                      layers.BatchNormalization(axis = 1),
+                                      layers.BatchNormalization(axis = -1),
                                       layers.LeakyReLU(alpha = 0.2),
                                       IncBlock(1024,1024)])
 
         self.en7_p = keras.Sequential([layers.Conv1D(128 , kernel_size = 4, strides = 2 , padding = 'same'),
-                                       layers.BatchNormalization(axis = 1),
+                                       layers.BatchNormalization(axis = -1),
                                        layers.LeakyReLU(alpha = 0.2),
                                        IncBlock(128,128)])
         
         self.en8_p = keras.Sequential([layers.Conv1D(64 , kernel_size = 4 , strides = 2, padding = 'same'),
-                                       layers.BatchNormalization(axis = 1),
+                                       layers.BatchNormalization(axis = -1),
                                        layers.LeakyReLU(alpha = 0.2),
                                        IncBlock(64,64)])
 
         self.en9_p = keras.Sequential([layers.Conv1D(4 , kernel_size = 4, strides = 2 , padding = 'same'),
-                                        layers.BatchNormalization(axis = 1),
+                                        layers.BatchNormalization(axis = -1),
                                         layers.LeakyReLU(alpha = 0.2),
                                         IncBlock(4,4)])
         
