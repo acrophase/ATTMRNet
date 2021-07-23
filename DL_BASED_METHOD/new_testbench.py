@@ -21,7 +21,7 @@ win_length = 32*srate
 coeff_val = 1e-2
 num_epochs = 20
 #config = input("Enter the configuration :")
-data_path = '/media/hticpose/drive1/charan/BR_Uncertainty/ppg_dalia_data'
+data_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/ppg_dalia_data'
 data = extract_data(data_path , srate , win_length)
   
 #saved_model_path = os.path.join( 
@@ -80,7 +80,7 @@ with open('raw_signal.pkl','rb') as f:
 input_data = input_data.reshape(input_data.shape[0],input_data.shape[-1],input_data.shape[1])
 raw_data = raw_data.reshape(raw_data.shape[0],raw_data.shape[-1],raw_data.shape[1])
 
-annotation = pd.read_pickle('/media/hticpose/drive1/charan/BR_Uncertainty/DL_BASED_METHOD/annotation.pkl')
+annotation = pd.read_pickle('/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/annotation.pkl')
 reference_rr = (annotation['Reference_RR'].values).reshape(-1,1)
 
 tensor_input = tf.convert_to_tensor(input_data , dtype = 'float32')
@@ -100,16 +100,11 @@ x_test_raw_sig = tensor_raw_data[tf.convert_to_tensor(~(training_ids.values))]
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-config_list = ['confe'] #["confc","confd","confb"]
+config_list = ["confc","confd","confb"]
 
 for item in config_list:
     if item == "confc":
-        lr = 1e-4
-        model_input_shape = (128,3)
-        model  = BRUnet(model_input_shape)
-        optimizer = Adam(learning_rate = lr)
-        #loss_fn = Huber()
-        save_path = '/media/hticpose/drive1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
