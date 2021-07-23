@@ -21,7 +21,7 @@ win_length = 32*srate
 coeff_val = 1e-2
 num_epochs = 20
 #config = input("Enter the configuration :")
-data_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/ppg_dalia_data'
+data_path = '/media/hticpose/drive1/charan/BR_Uncertainty/ppg_dalia_data'
 data = extract_data(data_path , srate , win_length)
   
 #saved_model_path = os.path.join( 
@@ -80,7 +80,7 @@ with open('raw_signal.pkl','rb') as f:
 input_data = input_data.reshape(input_data.shape[0],input_data.shape[-1],input_data.shape[1])
 raw_data = raw_data.reshape(raw_data.shape[0],raw_data.shape[-1],raw_data.shape[1])
 
-annotation = pd.read_pickle('/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/annotation.pkl')
+annotation = pd.read_pickle('/media/hticpose/drive1/charan/BR_Uncertainty/DL_BASED_METHOD/annotation.pkl')
 reference_rr = (annotation['Reference_RR'].values).reshape(-1,1)
 
 tensor_input = tf.convert_to_tensor(input_data , dtype = 'float32')
@@ -104,7 +104,12 @@ config_list = ["confc","confd","confb"]
 
 for item in config_list:
     if item == "confc":
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
+        lamda = 0.01
+        lr = 1e-4
+        model_input_shape = (128,3)
+        model  = BRUnet(model_input_shape)
+        optimizer = Adam(learning_rate = lr)
+        save_path = '/media/hticpose/drive1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -357,7 +362,7 @@ for item in config_list:
             train_loss_list = []
             for step, (x_batch_train_raw , y_batch_train) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
-                    #import pdb;pdb.set_trace()
+                    import pdb;pdb.set_trace()
                     #x_batch_train_raw = tf.expand_dims(x_batch_train_raw , axis = -1)
                     output = model(x_batch_train_raw , training = True)
                     loss_value = loss_fn(y_batch_train , output)
