@@ -23,7 +23,7 @@ num_epochs = 100
 model_input_shape = (128,3)
 
 #config = input("Enter the configuration :")
-data_path = '/media/hticpose/drive1/charan/BR_Uncertainty/ppg_dalia_data'
+data_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/ppg_dalia_data'
 data = extract_data(data_path , srate , win_length)
   
 #saved_model_path = os.path.join( 
@@ -78,7 +78,7 @@ with open('input','rb') as f:
 
 input_data = input_data.reshape(input_data.shape[0],input_data.shape[-1],input_data.shape[1])
 
-annotation = pd.read_pickle('/media/hticpose/drive1/charan/BR_Uncertainty/DL_BASED_METHOD/annotation.pkl')
+annotation = pd.read_pickle('/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/annotation.pkl')
 reference_rr = (annotation['Reference_RR'].values).reshape(-1,1)
 
 tensor_input = tf.convert_to_tensor(input_data , dtype = 'float32')
@@ -94,11 +94,11 @@ x_test_ref_rr = tensor_ref_rr[tf.convert_to_tensor(~(training_ids.values))]
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-config_list = ['confb'] #["confc","confd","confb"]
+config_list = ["confc","confd","confb"]
 
 for item in config_list:
     if item == "confc":
-        save_path = '/media/hticpose/drive1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -167,7 +167,7 @@ for item in config_list:
             test_loss.reset_states()
 
     if item == "confd":
-        save_path = '/media/hticpose/drive1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)        
@@ -245,7 +245,7 @@ for item in config_list:
             test_loss.reset_states()
 
     if item == "confb":
-        save_path = '/media/hticpose/drive1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
