@@ -15,15 +15,13 @@ import evidential_deep_learning as edl
 import datetime
 import os
 
+
 srate = 700
 win_length = 32*srate
-
 coeff_val = 1e-2
 num_epochs = 100
-model_input_shape = (128,3)
-
 #config = input("Enter the configuration :")
-data_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/ppg_dalia_data'
+data_path = '/media/hticpose/drive1/charan/BR_Uncertainty/ppg_dalia_data'
 data = extract_data(data_path , srate , win_length)
   
 #saved_model_path = os.path.join( 
@@ -76,29 +74,42 @@ with open('output','rb') as f:
 with open('input','rb') as f:
     input_data = pkl.load(f)
 
-input_data = input_data.reshape(input_data.shape[0],input_data.shape[-1],input_data.shape[1])
+with open('raw_signal.pkl','rb') as f:
+    raw_data = pkl.load(f)
 
-annotation = pd.read_pickle('/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/annotation.pkl')
+input_data = input_data.reshape(input_data.shape[0],input_data.shape[-1],input_data.shape[1])
+raw_data = raw_data.reshape(raw_data.shape[0],raw_data.shape[-1],raw_data.shape[1])
+
+annotation = pd.read_pickle('/media/hticpose/drive1/charan/BR_Uncertainty/DL_BASED_METHOD/annotation.pkl')
 reference_rr = (annotation['Reference_RR'].values).reshape(-1,1)
 
 tensor_input = tf.convert_to_tensor(input_data , dtype = 'float32')
 tensor_output = tf.convert_to_tensor(output_data , dtype = 'float32')
 tensor_ref_rr = tf.convert_to_tensor(reference_rr, dtype = 'float32')
+tensor_raw_data = tf.convert_to_tensor(raw_data, dtype = 'float32')
+
 training_ids = annotation['patient_id'] < 13
 
 x_train_data = tensor_input[tf.convert_to_tensor(training_ids.values)]
 x_test_data = tensor_input[tf.convert_to_tensor(~(training_ids.values))]
 x_train_ref_rr = tensor_ref_rr[tf.convert_to_tensor(training_ids.values)]
 x_test_ref_rr = tensor_ref_rr[tf.convert_to_tensor(~(training_ids.values))]
+x_train_raw_sig = tensor_raw_data[tf.convert_to_tensor(training_ids.values)]
+x_test_raw_sig = tensor_raw_data[tf.convert_to_tensor(~(training_ids.values))]
 
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-config_list = ["confc","confd","confb"]
+config_list = ["confe"]#["confc","confd","confb","confe"]
 
 for item in config_list:
     if item == "confc":
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
+        lamda = 0.01
+        lr = 1e-4
+        model_input_shape = (128,3)
+        model  = BRUnet(model_input_shape)
+        optimizer = Adam(learning_rate = lr)
+        save_path = '/media/hticpose/drive1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -116,9 +127,7 @@ for item in config_list:
         test_log_dir = 'logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
         train_summary_writer = tf.summary.create_file_writer(train_log_dir)
         test_summary_writer = tf.summary.create_file_writer(test_log_dir)
-        lr = 1e-4
-        model  = BRUnet(model_input_shape)
-        optimizer = Adam(learning_rate = lr)
+
         #loss_fn = Huber()
         #loss_fn=edl.losses.EvidentialRegression
         print("Starting the training for : {}".format(item))
@@ -167,15 +176,20 @@ for item in config_list:
             test_loss.reset_states()
 
     if item == "confd":
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
+        lamda = 0.01
+        lr = 1e-4
+        model_input_shape = (128,3)
+        model  = BRUnet_Multi_resp(model_input_shape)
+        optimizer = Adam(learning_rate = lr)
+        #loss_fn = Huber()
+        save_path = '/media/hticpose/drive1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)        
         train_loss = tf.keras.metrics.Mean('train_loss', dtype=tf.float32)
         test_loss = tf.keras.metrics.Mean('test_loss', dtype=tf.float32)
 
-        lamda = 0.01
-        lr = 1e-4
+
         train_dataset = tf.data.Dataset.from_tensor_slices((x_train_data , y_train_data, x_train_ref_rr))
         train_dataset = train_dataset.shuffle(len(x_train_data)).batch(128)
         test_dataset = tf.data.Dataset.from_tensor_slices((x_test_data , y_test_data, x_test_ref_rr))
@@ -187,8 +201,7 @@ for item in config_list:
         train_summary_writer = tf.summary.create_file_writer(train_log_dir)
         test_summary_writer = tf.summary.create_file_writer(test_log_dir)
 
-        model  = BRUnet_Multi_resp(model_input_shape)
-        optimizer = Adam(learning_rate = lr)
+
         #loss_fn = Huber()
         #loss_fn=edl.losses.EvidentialRegression
         print("Starting the training for : {}".format(item))
@@ -245,14 +258,19 @@ for item in config_list:
             test_loss.reset_states()
 
     if item == "confb":
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
+        lamda = 0.01
+        lr = 1e-4
+        model_input_shape = (128,3)
+        model  = BRUnet_Encoder(model_input_shape)
+        optimizer = Adam(learning_rate = lr)
+        #loss_fn = Huber()
+        save_path = '/media/hticpose/drive1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
         train_loss = tf.keras.metrics.Mean('train_loss', dtype=tf.float32)
         test_loss = tf.keras.metrics.Mean('test_loss', dtype=tf.float32)
-        lamda = 0.01
-        lr = 1e-4
+        
         train_dataset = tf.data.Dataset.from_tensor_slices((x_train_data , x_train_ref_rr))
         train_dataset = train_dataset.shuffle(len(x_train_data)).batch(128)
         test_dataset = tf.data.Dataset.from_tensor_slices((x_test_data , x_test_ref_rr))
@@ -264,9 +282,8 @@ for item in config_list:
         train_summary_writer = tf.summary.create_file_writer(train_log_dir)
         test_summary_writer = tf.summary.create_file_writer(test_log_dir)
         
-        model  = BRUnet_Encoder(model_input_shape)
-        optimizer = Adam(learning_rate = lr)
-        #loss_fn = Huber()
+
+
         print("Starting the training for : {}".format(item))
         for epoch in range(num_epochs):
             print("starting the epoch : {}".format(epoch + 1))
@@ -311,6 +328,81 @@ for item in config_list:
             print("validation loss -- {}".format(mean_loss)) 
             train_loss.reset_states()
             test_loss.reset_states()
+    
+    if item == "confe":
+        lamda = 0.01
+        lr = 1e-4
+        model_input_shape = (2048,3)
+        model  = BRUnet_raw(model_input_shape)
+        optimizer = Adam(learning_rate = lr)
+        loss_fn = Huber()
+
+        save_path = '/media/hticpose/drive1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
+        results_path = os.path.join(save_path , item.lower())
+        if not(os.path.isdir(results_path)):
+            os.mkdir(results_path)
+        train_loss = tf.keras.metrics.Mean('train_loss', dtype=tf.float32)
+        test_loss = tf.keras.metrics.Mean('test_loss', dtype=tf.float32)
+        
+        train_dataset = tf.data.Dataset.from_tensor_slices((x_train_raw_sig , y_train_data))
+        train_dataset = train_dataset.shuffle(len(x_train_raw_sig)).batch(128)
+        test_dataset = tf.data.Dataset.from_tensor_slices((x_test_raw_sig , y_test_data))
+        test_dataset = test_dataset.batch(128)
+
+        current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        train_log_dir = 'logs/gradient_tape/'+item.upper() + current_time + '/train'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
+        test_log_dir = 'logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
+        train_summary_writer = tf.summary.create_file_writer(train_log_dir)
+        test_summary_writer = tf.summary.create_file_writer(test_log_dir)
+        
+
+        print("Starting the training for : {}".format(item))
+        for epoch in range(num_epochs):
+            print("starting the epoch : {}".format(epoch + 1))
+            train_loss_list = []
+            for step, (x_batch_train_raw , y_batch_train) in enumerate(train_dataset):
+                with tf.GradientTape() as tape:
+                    #import pdb;pdb.set_trace()
+                    #x_batch_train_raw = tf.expand_dims(x_batch_train_raw , axis = -1)
+                    output = model(x_batch_train_raw , training = True)
+                    loss_value = loss_fn(y_batch_train , output)
+                    #loss_value = edl.losses.EvidentialRegression(x_batch_train_ref_rr,output,coeff = coeff_val)
+                    #loss_value = lamda*loss_value
+                    #loss_value = lamda*loss_fn(x_batch_train_ref_rr , output)
+                    train_loss_list.append(loss_value)
+                grads = tape.gradient(loss_value, model.trainable_weights)
+                optimizer.apply_gradients(zip(grads, model.trainable_weights)) 
+                train_loss(loss_value)
+                # print(train_loss_list)
+                with train_summary_writer.as_default():
+                    tf.summary.scalar('loss', train_loss.result(), step=epoch)
+
+                if step%10 == 0:
+                    print('Epoch [%d/%d], lter [%d] Loss: %.4f'
+                            %(epoch+1, num_epochs, step+1, loss_value))
+            print("net loss -- {}".format(np.mean(np.array(train_loss_list))))
+            test_loss_list = []
+            best_loss = 100000
+
+            for step , (x_batch_test_raw,y_batch_test) in enumerate(test_dataset):
+                #x_batch_test_raw = tf.expand_dims(x_batch_test_raw , axis = -1)
+                test_output = model(x_batch_test_raw)
+                test_loss_val = loss_fn(y_batch_test , test_output)
+                #test_loss_val = edl.losses.EvidentialRegression(y_batch_test , test_output , coeff = coeff_val)
+                #test_loss_val = lamda*test_loss_val
+                #test_loss_val = lamda*loss_fn(x_batch_test_ref_rr , test_output)
+                test_loss(test_loss_val)
+                test_loss_list.append(test_loss_val)
+                with test_summary_writer.as_default():
+                    tf.summary.scalar('loss', test_loss.result(), step=epoch)
+            mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
+            if mean_loss < best_loss:
+                best_loss = mean_loss
+                model.save_weights(os.path.join(results_path, 'best_model_'+'lr_'+str(lr)+'__'+'coeff_'+str(coeff_val)+'.h5'))
+            print("validation loss -- {}".format(mean_loss)) 
+            train_loss.reset_states()
+            test_loss.reset_states()
+
 
       
                 
