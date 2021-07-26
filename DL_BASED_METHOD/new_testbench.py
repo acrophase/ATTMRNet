@@ -19,7 +19,7 @@ import os
 srate = 700
 win_length = 32*srate
 coeff_val = 1e-2
-num_epochs = 20
+num_epochs = 100
 #config = input("Enter the configuration :")
 data_path = '/media/hticpose/drive1/charan/BR_Uncertainty/ppg_dalia_data'
 data = extract_data(data_path , srate , win_length)
@@ -100,7 +100,7 @@ x_test_raw_sig = tensor_raw_data[tf.convert_to_tensor(~(training_ids.values))]
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-config_list = ["confc","confd","confb","confe"]
+config_list = ["confe"]#["confc","confd","confb","confe"]
 
 for item in config_list:
     if item == "confc":
@@ -362,7 +362,7 @@ for item in config_list:
             train_loss_list = []
             for step, (x_batch_train_raw , y_batch_train) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
-                    import pdb;pdb.set_trace()
+                    #import pdb;pdb.set_trace()
                     #x_batch_train_raw = tf.expand_dims(x_batch_train_raw , axis = -1)
                     output = model(x_batch_train_raw , training = True)
                     loss_value = loss_fn(y_batch_train , output)
