@@ -100,7 +100,7 @@ x_test_raw_sig = tensor_raw_data[tf.convert_to_tensor(~(training_ids.values))]
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-config_list = ["confc","confd","confb"]
+config_list = ["confc","confd","confb","confe"]
 
 for item in config_list:
     if item == "confc":
