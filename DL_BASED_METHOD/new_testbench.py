@@ -335,7 +335,7 @@ for item in config_list:
         model_input_shape = (2048,3)
         model  = BRUnet_raw(model_input_shape)
         optimizer = Adam(learning_rate = lr)
-        loss_fn = Huber()
+        #loss_fn = Huber()
 
         save_path = '/media/hticpose/drive1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
         results_path = os.path.join(save_path , item.lower())
@@ -355,7 +355,6 @@ for item in config_list:
         train_summary_writer = tf.summary.create_file_writer(train_log_dir)
         test_summary_writer = tf.summary.create_file_writer(test_log_dir)
         
-
         print("Starting the training for : {}".format(item))
         for epoch in range(num_epochs):
             print("starting the epoch : {}".format(epoch + 1))
@@ -363,10 +362,10 @@ for item in config_list:
             for step, (x_batch_train_raw , y_batch_train) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
                     #import pdb;pdb.set_trace()
-                    #x_batch_train_raw = tf.expand_dims(x_batch_train_raw , axis = -1)
+                    y_batch_train = tf.expand_dims(y_batch_train , axis = -1)
                     output = model(x_batch_train_raw , training = True)
-                    loss_value = loss_fn(y_batch_train , output)
-                    #loss_value = edl.losses.EvidentialRegression(x_batch_train_ref_rr,output,coeff = coeff_val)
+                    #loss_value = loss_fn(y_batch_train , output)
+                    loss_value = edl.losses.EvidentialRegression(y_batch_train, output, coeff = coeff_val)
                     #loss_value = lamda*loss_value
                     #loss_value = lamda*loss_fn(x_batch_train_ref_rr , output)
                     train_loss_list.append(loss_value)
@@ -385,10 +384,10 @@ for item in config_list:
             best_loss = 100000
 
             for step , (x_batch_test_raw,y_batch_test) in enumerate(test_dataset):
-                #x_batch_test_raw = tf.expand_dims(x_batch_test_raw , axis = -1)
+                y_batch_test = tf.expand_dims(y_batch_test , axis = -1)
                 test_output = model(x_batch_test_raw)
-                test_loss_val = loss_fn(y_batch_test , test_output)
-                #test_loss_val = edl.losses.EvidentialRegression(y_batch_test , test_output , coeff = coeff_val)
+                #test_loss_val = loss_fn(y_batch_test , test_output)
+                test_loss_val = edl.losses.EvidentialRegression(y_batch_test , test_output , coeff = coeff_val)
                 #test_loss_val = lamda*test_loss_val
                 #test_loss_val = lamda*loss_fn(x_batch_test_ref_rr , test_output)
                 test_loss(test_loss_val)
