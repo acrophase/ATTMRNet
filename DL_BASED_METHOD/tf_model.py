@@ -389,7 +389,6 @@ class BRUnet_Encoder(tf.keras.Model):
         out_5 = self.ev1(out_4)
         return out_5
 
-
 class BRUnet_raw(tf.keras.Model):
     def __init__(self,in_channels):
         super(BRUnet_raw, self).__init__()
@@ -488,6 +487,8 @@ class BRUnet_raw(tf.keras.Model):
         
         self.de9_ecg = keras.Sequential([Conv1DTranspose(1, kernel_size = 1 , strides = 1 , padding = 'same'),
                                          layers.LeakyReLU(alpha = 0.2)])
+
+        self.ev1 = edl.layers.DenseNormalGamma(1)
     def call(self,x):
         e1 = self.en1(x)
         e2 = self.en2(e1)
@@ -510,8 +511,8 @@ class BRUnet_raw(tf.keras.Model):
         d7_ecg = self.de7_ecg(d6_ecg)
         d8_ecg = self.de8_ecg(d7_ecg)
         d9_ecg = self.de9_ecg(d8_ecg)
-
-        return d9_ecg
+        d10_ecg = self.ev1(d9_ecg)
+        return d10_ecg
 
 
         
