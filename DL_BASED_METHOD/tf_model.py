@@ -569,7 +569,7 @@ class BRUnet_raw_encoder(tf.keras.Model):
                                        IncBlock(4,4)])
         
         self.fc = layers.Dense(1)
-        self.ev1 = edl.layers.DenseNormalGamma(1)
+        #self.ev1 = edl.layers.DenseNormalGamma(1)
     
     def call(self , x):
         #import pdb;pdb.set_trace()
@@ -583,8 +583,8 @@ class BRUnet_raw_encoder(tf.keras.Model):
         out_2 =  self.en8_p(out_1)
         out_3 =  self.en9_p(out_2)
         out_4 = self.fc(tf.reshape(out_3 , (-1 , out_3.shape[1]*out_3.shape[2])))
-        out_5 = self.ev1(out_4)
-        return tf.expand_dims(out_5 , axis = 1)
+        #out_5 = self.ev1(out_4)
+        return tf.expand_dims(out_4 , axis = 1)
 
 class BRUnet_raw_multi(tf.keras.Model):
     def __init__(self, in_channels):
@@ -655,7 +655,7 @@ class BRUnet_raw_multi(tf.keras.Model):
         
         self.fc = layers.Dense(1)
 
-        self.ev1 = edl.layers.DenseNormalGamma(1)
+        #self.ev1 = edl.layers.DenseNormalGamma(1)
 
         self.de1_ecg = keras.Sequential([layers.Conv1D(512 , kernel_size = 3 , padding = 'same'),
                                         layers.BatchNormalization(axis = -1),
@@ -705,7 +705,7 @@ class BRUnet_raw_multi(tf.keras.Model):
         self.de9_ecg = keras.Sequential([Conv1DTranspose(1 , kernel_size = 1 , strides = 1 , padding = 'same'),
                                          layers.LeakyReLU(alpha = 0.2)])
         
-        self.ev2 = edl.layers.DenseNormalGamma(1)
+        #self.ev2 = edl.layers.DenseNormalGamma(1)
     
     def call (self , x):
         
@@ -736,12 +736,12 @@ class BRUnet_raw_multi(tf.keras.Model):
         d7_ecg = self.de7_ecg(d6_ecg)
         d8_ecg = self.de8_ecg(d7_ecg)
         d9_ecg = self.de9_ecg(d8_ecg)
-        d10_ecg = self.ev2(d9_ecg)
+        #d10_ecg = self.ev2(d9_ecg)
 
-        #out_4 = tf.expand_dims(out_4 , axis = 1)
-        out_5 = tf.expand_dims(out_5 , axis = 1)
+        out_4 = tf.expand_dims(out_4 , axis = 1)
+        #out_5 = tf.expand_dims(out_5 , axis = 1)
 
-        return d10_ecg, out_5
+        return d9_ecg, out_4
 
 
 
