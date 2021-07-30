@@ -434,7 +434,7 @@ class IncBlock(nn.Module):
     def __init__(self, in_channels, out_channels, size = 15, stride = 1, padding = 7):
         super(IncBlock,self).__init__()
         
-        self.conv1x1 = nn.Conv1d(in_channels, out_channels,     =1, bias = False)
+        self.conv1x1 = nn.Conv1d(in_channels, out_channels, kernel_size=1, bias = False)
         
         self.conv1 = nn.Sequential(nn.Conv1d(in_channels, out_channels//4, kernel_size = size, stride = stride, padding = padding ),
                                    nn.BatchNorm1d(out_channels//4))
