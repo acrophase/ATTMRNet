@@ -14,14 +14,15 @@ from tensorflow.keras.losses import Huber
 import evidential_deep_learning as edl
 import datetime
 import os
+import matplotlib.pyplot as plt
 
 
 srate = 700
 win_length = 32*srate
 coeff_val = 1e-2
-num_epochs = 1000
+num_epochs = 100
 #config = input("Enter the configuration :")
-data_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/ppg_dalia_data'
+data_path = '/media/hticpose/drive1/charan/BR_Uncertainty/ppg_dalia_data'
 data = extract_data(data_path , srate , win_length)
   
 #saved_model_path = os.path.join( 
@@ -80,7 +81,7 @@ with open('raw_signal.pkl','rb') as f:
 input_data = input_data.reshape(input_data.shape[0],input_data.shape[-1],input_data.shape[1])
 raw_data = raw_data.reshape(raw_data.shape[0],raw_data.shape[-1],raw_data.shape[1])
 
-annotation = pd.read_pickle('/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/annotation.pkl')
+annotation = pd.read_pickle('/media/hticpose/drive1/charan/BR_Uncertainty/DL_BASED_METHOD/annotation.pkl')
 reference_rr = (annotation['Reference_RR'].values).reshape(-1,1)
 
 tensor_input = tf.convert_to_tensor(input_data , dtype = 'float32')
@@ -100,7 +101,7 @@ x_test_raw_sig = tensor_raw_data[tf.convert_to_tensor(~(training_ids.values))]
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-config_list = ["confa","confb","confc","confd","confe","conff"]
+config_list = ["confc"]#["confa","confb","confc","confd","confe","conff"]
 
 for item in config_list:
     if item == "confc":
@@ -109,7 +110,7 @@ for item in config_list:
         model_input_shape = (128,3)
         model  = BRUnet(model_input_shape)
         optimizer = Adam(learning_rate = lr)
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
+        save_path = '/media/hticpose/drive1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -140,12 +141,13 @@ for item in config_list:
                     y_batch_train = tf.expand_dims(y_batch_train , axis = -1)
                     output = model(x_batch_train , training = True)
                     loss_value = edl.losses.EvidentialRegression(y_batch_train,output,coeff = coeff_val)
-                    #loss_value = loss_fn(y_batch_train , output,coeff = 0.001)
+                    #loss_value = loss_fn(y_batch_train , output)
                     train_loss_list.append(loss_value)
 
                 grads = tape.gradient(loss_value, model.trainable_weights)
                 optimizer.apply_gradients(zip(grads, model.trainable_weights)) 
                 train_loss(loss_value)
+                
                 with train_summary_writer.as_default():
                     tf.summary.scalar('loss', train_loss.result(), step=epoch)
 
@@ -155,15 +157,16 @@ for item in config_list:
             print("net loss -- {}".format(np.mean(np.array(train_loss_list))))
             test_loss_list = []
             best_loss = 100000
-
             for step , (x_batch_test,y_batch_test) in enumerate(test_dataset):
                 y_batch_test = tf.expand_dims(y_batch_test , axis = -1)
-                test_output = model(x_batch_test)
+                test_output = model(x_batch_test , training = False)
+                #test_loss_val = loss_fn(y_batch_test ,test_output)
                 test_loss_val = edl.losses.EvidentialRegression(y_batch_test , test_output , coeff = coeff_val)
                 test_loss(test_loss_val)
                 test_loss_list.append(test_loss_val)
                 with test_summary_writer.as_default():
                     tf.summary.scalar('loss', test_loss.result(), step=epoch)
+                print(test_output)
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
