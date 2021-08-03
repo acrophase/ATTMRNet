@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 import evidential_deep_learning as edl
+from tensorflow.keras.models import Model
 
 class Conv1DTranspose(tf.keras.Model):
     def __init__(self, filters, kernel_size, strides=2, padding='same'):
@@ -145,7 +146,7 @@ class BRUnet(tf.keras.Model):
         
         self.ev1 = edl.layers.DenseNormalGamma(1)
     
-    def call (self,x):
+    def call (self,x,training = False):
         
         #import pdb;pdb.set_trace()
         e1 = self.en1(x)
