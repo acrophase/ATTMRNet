@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 import timeit
 import random as rn
 
-#os.environ['PYTHONHASHSEED'] = '0'
+os.environ['PYTHONHASHSEED'] = str(42)
 #os.environ['CUDA_VISIBLE_DEVICES'] = ''
 np.random.seed(42)
 rn.seed(42)
@@ -26,7 +26,7 @@ tf.random.set_seed(42)
 
 srate = 700
 win_length = 32*srate
-coeff_val = 1e-2
+
 num_epochs = 100
 #config = input("Enter the configuration :")
 data_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/ppg_dalia_data'
@@ -108,26 +108,29 @@ x_test_raw_sig = tensor_raw_data[tf.convert_to_tensor(~(training_ids.values))]
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-config_list = ["conff"]#["confa","confb","confc","confd","confe","conff"]
+config_list = ["confd"]#["confa","confb","confc","confd","confe","conff"]
 
 def scheduler (epoch):
     if epoch <=20:
         lr = 1e-2
+    elif epoch>=21 and epoch<=50:
+        lr = 1e-3
     else:
         lr = 1e-4
     return lr
 
 start = timeit.default_timer()
 for item in config_list:
-    
     if item == "confc":
-        lamda = 0.01
+        #lamda = 0.01
         lr = 1e-4
-        loss_fn = Huber()
+        coeff_val = 1e-3
+        
+        #loss_fn = Huber()
         model_input_shape = (128,3)
         model  = BRUnet(model_input_shape)
         optimizer = Adam(learning_rate = lr)
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODEL_WITH_EVI'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -141,12 +144,11 @@ for item in config_list:
         test_dataset = test_dataset.batch(128)
         
         current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        train_log_dir = 'logs/gradient_tape/'+item.upper() + current_time + '/train'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
-        test_log_dir = 'logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
+        train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
+        test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
         train_summary_writer = tf.summary.create_file_writer(train_log_dir)
         test_summary_writer = tf.summary.create_file_writer(test_log_dir)
 
-        
         #loss_fn=edl.losses.EvidentialRegression
         print("Starting the training for : {}".format(item))
         for epoch in range(num_epochs):
@@ -155,16 +157,15 @@ for item in config_list:
             for step, (x_batch_train , y_batch_train) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
                     #import pdb;pdb.set_trace()
-                    #y_batch_train = tf.expand_dims(y_batch_train , axis = -1)
+                    y_batch_train = tf.expand_dims(y_batch_train , axis = -1)
                     output = model(x_batch_train , training = True)
-                    #loss_value = edl.losses.EvidentialRegression(y_batch_train,output,coeff = coeff_val)
-                    loss_value = loss_fn(y_batch_train , output)
+                    loss_value = edl.losses.EvidentialRegression(y_batch_train,output,coeff = coeff_val)
+                    #loss_value = loss_fn(y_batch_train , output)
                     train_loss_list.append(loss_value)
-
                 grads = tape.gradient(loss_value, model.trainable_weights)
                 optimizer.apply_gradients(zip(grads, model.trainable_weights)) 
                 train_loss(loss_value)
-                
+                #print(output)
                 with train_summary_writer.as_default():
                     tf.summary.scalar('loss', train_loss.result(), step=epoch)
 
@@ -175,10 +176,10 @@ for item in config_list:
             test_loss_list = []
             best_loss = 100000
             for step , (x_batch_test,y_batch_test) in enumerate(test_dataset):
-                #y_batch_test = tf.expand_dims(y_batch_test , axis = -1)
+                y_batch_test = tf.expand_dims(y_batch_test , axis = -1)
                 test_output = model(x_batch_test , training = False)
-                test_loss_val = loss_fn(y_batch_test ,test_output)
-                #test_loss_val = edl.losses.EvidentialRegression(y_batch_test , test_output , coeff = coeff_val)
+                #test_loss_val = loss_fn(y_batch_test ,test_output)
+                test_loss_val = edl.losses.EvidentialRegression(y_batch_test , test_output , coeff = coeff_val)
                 test_loss(test_loss_val)
                 test_loss_list.append(test_loss_val)
                 with test_summary_writer.as_default():
@@ -194,12 +195,13 @@ for item in config_list:
             test_loss.reset_states()
         
     if item == "confd":
-        lamda = 0.01
-        lr = 1e-4
+        #lamda = 0.01
+        #lr = 1e-4
+        coeff_val = 0.01
         model_input_shape = (128,3)
         model  = BRUnet_Multi_resp(model_input_shape)
-        loss_fn = Huber()
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
+        #loss_fn = Huber()
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODEL_WITH_EVI'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)        
@@ -211,31 +213,34 @@ for item in config_list:
         test_dataset = tf.data.Dataset.from_tensor_slices((x_test_data , y_test_data, x_test_ref_rr))
         test_dataset = test_dataset.batch(128)
 
-        current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        train_log_dir = 'logs/gradient_tape/'+item.upper() + current_time + '/train'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
-        test_log_dir = 'logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
-        train_summary_writer = tf.summary.create_file_writer(train_log_dir)
-        test_summary_writer = tf.summary.create_file_writer(test_log_dir)
-
         print("Starting the training for : {}".format(item))
         for epoch in range(num_epochs):
             print("starting the epoch : {}".format(epoch + 1))
             train_loss_list = []
-            optimizer = Adam(learning_rate = scheduler(epoch))
+            lr = scheduler(epoch)
+            optimizer = Adam(learning_rate = lr)
+            current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
+            test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
+            train_summary_writer = tf.summary.create_file_writer(train_log_dir)
+            test_summary_writer = tf.summary.create_file_writer(test_log_dir)
             for step, (x_batch_train , y_batch_train, x_batch_train_ref_rr) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
-                    #y_batch_train = tf.expand_dims(y_batch_train , axis = -1)
+                    y_batch_train = tf.expand_dims(y_batch_train , axis = -1)
                     output, out_rr = model(x_batch_train , training = True)
-                    #loss_value = edl.losses.EvidentialRegression(y_batch_train,output,coeff = coeff_val)
-                    loss_value = loss_fn(y_batch_train , output)
-                    #loss_value_rr = edl.losses.EvidentialRegression(x_batch_train_ref_rr,out_rr,coeff = coeff_val)
-                    loss_value_rr = loss_fn(x_batch_train_ref_rr, out_rr)
+                    loss_value = edl.losses.EvidentialRegression(y_batch_train,output,coeff = coeff_val)
+                    #loss_value = loss_fn(y_batch_train , output)
+                    loss_value_rr = edl.losses.EvidentialRegression(x_batch_train_ref_rr,out_rr,coeff = coeff_val)
+                    #loss_value_rr = loss_fn(x_batch_train_ref_rr, out_rr)
                     net_loss_value = loss_value + loss_value_rr
                     train_loss_list.append(net_loss_value)
-
+                    
                 grads = tape.gradient(net_loss_value, model.trainable_weights)
                 optimizer.apply_gradients(zip(grads, model.trainable_weights)) 
                 train_loss(net_loss_value)
+                #print(out_rr)
+                #print("###############################################")
+                #print(out_rr)
                 with train_summary_writer.as_default():
                     tf.summary.scalar('loss', train_loss.result(), step=epoch)
 
@@ -247,18 +252,18 @@ for item in config_list:
             best_loss = 100000
 
             for step , (x_batch_test,y_batch_test,x_batch_test_ref_rr) in enumerate(test_dataset):
-                #y_batch_test = tf.expand_dims(y_batch_test , axis = -1)
+                y_batch_test = tf.expand_dims(y_batch_test , axis = -1)
                 test_output,test_out_rr = model(x_batch_test)
-                test_loss_resp = loss_fn(y_batch_test , test_output)
-                #test_loss_resp = edl.losses.EvidentialRegression(y_batch_test , test_output , coeff = coeff_val)
-                test_loss_rr = loss_fn(x_batch_test_ref_rr , test_out_rr)
-                #test_loss_rr = edl.losses.EvidentialRegression(x_batch_test_ref_rr , test_out_rr , coeff = coeff_val)
+                #test_loss_resp = loss_fn(y_batch_test , test_output)
+                test_loss_resp = edl.losses.EvidentialRegression(y_batch_test , test_output , coeff = coeff_val)
+                #test_loss_rr = loss_fn(x_batch_test_ref_rr , test_out_rr)
+                test_loss_rr = edl.losses.EvidentialRegression(x_batch_test_ref_rr , test_out_rr , coeff = coeff_val)
                 test_loss_val = test_loss_resp + test_loss_rr
                 test_loss(test_loss_val)
                 test_loss_list.append(test_loss_val)
                 with test_summary_writer.as_default():
                     tf.summary.scalar('loss', test_loss.result(), step=epoch)
-                print(test_out_rr)
+                #print(test_out_rr)
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
@@ -269,13 +274,22 @@ for item in config_list:
             test_loss.reset_states()
 
     if item == "confb":
-        lamda = 0.01
-        lr = 1e-4
+        def scheduler (epoch):
+            if epoch <=20:
+                lr = 1e-2
+            elif epoch>=21 and epoch<=50:
+                lr = 1e-3
+            else:
+                lr = 1e-4
+            return lr
+        #lamda = 0.01
+        ##lr = 1e-3
+        coeff_val = 0.01
         model_input_shape = (128,3)
         model  = BRUnet_Encoder(model_input_shape)
-        
-        loss_fn = Huber()
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
+        #optimizer = Adam(learning_rate = lr)
+        #loss_fn = Huber()
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODEL_WITH_EVI'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -287,29 +301,30 @@ for item in config_list:
         test_dataset = tf.data.Dataset.from_tensor_slices((x_test_data , x_test_ref_rr))
         test_dataset = test_dataset.batch(128)
 
-        current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        train_log_dir = 'logs/gradient_tape/'+item.upper() + current_time + '/train'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
-        test_log_dir = 'logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
-        train_summary_writer = tf.summary.create_file_writer(train_log_dir)
-        test_summary_writer = tf.summary.create_file_writer(test_log_dir)
-
         print("Starting the training for : {}".format(item))
         for epoch in range(num_epochs):
             print("starting the epoch : {}".format(epoch + 1))
-            optimizer = Adam(learning_rate = scheduler(epoch))
+            lr = scheduler(epoch)
+            optimizer = Adam(learning_rate = lr)
             train_loss_list = []
+            current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
+            test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
+            train_summary_writer = tf.summary.create_file_writer(train_log_dir)
+            test_summary_writer = tf.summary.create_file_writer(test_log_dir)
             for step, (x_batch_train , x_batch_train_ref_rr) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
                     #import pdb;pdb.set_trace()
-                    #x_batch_train_ref_rr = tf.expand_dims(x_batch_train_ref_rr , axis = -1)
+                    x_batch_train_ref_rr = tf.expand_dims(x_batch_train_ref_rr , axis = -1)
                     output = model(x_batch_train , training = True)
-                    #loss_value = edl.losses.EvidentialRegression(x_batch_train_ref_rr,output,coeff = coeff_val)
+                    loss_value = edl.losses.EvidentialRegression(x_batch_train_ref_rr,output,coeff = coeff_val)
                     #loss_value = lamda*loss_value
-                    loss_value = loss_fn(x_batch_train_ref_rr , output)
+                    #loss_value = loss_fn(x_batch_train_ref_rr , output)
                     train_loss_list.append(loss_value)
                 grads = tape.gradient(loss_value, model.trainable_weights)
                 optimizer.apply_gradients(zip(grads, model.trainable_weights)) 
                 train_loss(loss_value)
+                print(output)
                 with train_summary_writer.as_default():
                     tf.summary.scalar('loss', train_loss.result(), step=epoch)
 
@@ -321,16 +336,16 @@ for item in config_list:
             best_loss = 100000
 
             for step , (x_batch_test,x_batch_test_ref_rr) in enumerate(test_dataset):
-                #x_batch_test_ref_rr = tf.expand_dims(x_batch_test_ref_rr , axis = -1)
+                x_batch_test_ref_rr = tf.expand_dims(x_batch_test_ref_rr , axis = -1)
                 test_output = model(x_batch_test)
-                #test_loss_val = edl.losses.EvidentialRegression(x_batch_test_ref_rr , test_output , coeff = coeff_val)
+                test_loss_val = edl.losses.EvidentialRegression(x_batch_test_ref_rr , test_output , coeff = coeff_val)
                 #test_loss_val = lamda*test_loss_val
-                test_loss_val = loss_fn(x_batch_test_ref_rr , test_output)
+                #test_loss_val = loss_fn(x_batch_test_ref_rr , test_output)
                 test_loss(test_loss_val)
                 test_loss_list.append(test_loss_val)
                 with test_summary_writer.as_default():
                     tf.summary.scalar('loss', test_loss.result(), step=epoch)
-                print(test_output)
+                #print(test_output)
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
@@ -340,14 +355,14 @@ for item in config_list:
             test_loss.reset_states()
     
     if item == "confe":
-        lamda = 0.01
-        lr = 1e-4
+        #lamda = 0.01
+        #lr = 1e-3
+        coeff_val = 1e-4
         model_input_shape = (2048,3)
         model  = BRUnet_raw(model_input_shape)
-        optimizer = Adam(learning_rate = lr)
-        loss_fn = Huber()
+        #loss_fn = Huber()
 
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODEL_WITH_EVI'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -359,29 +374,30 @@ for item in config_list:
         test_dataset = tf.data.Dataset.from_tensor_slices((x_test_raw_sig , y_test_data))
         test_dataset = test_dataset.batch(128)
 
-        current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        train_log_dir = 'logs/gradient_tape/'+item.upper() + current_time + '/train'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
-        test_log_dir = 'logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
-        train_summary_writer = tf.summary.create_file_writer(train_log_dir)
-        test_summary_writer = tf.summary.create_file_writer(test_log_dir)
+
         
         print("Starting the training for : {}".format(item))
         for epoch in range(num_epochs):
             print("starting the epoch : {}".format(epoch + 1))
             train_loss_list = []
+            lr = scheduler(epoch)
+            optimizer = Adam(learning_rate = lr)
+            current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
+            test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
+            train_summary_writer = tf.summary.create_file_writer(train_log_dir)
+            test_summary_writer = tf.summary.create_file_writer(test_log_dir)
             for step, (x_batch_train_raw , y_batch_train) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
-                    
-                    #y_batch_train = tf.expand_dims(y_batch_train , axis = -1)
+                    y_batch_train = tf.expand_dims(y_batch_train , axis = -1)
                     output = model(x_batch_train_raw , training = True)
-                    loss_value = loss_fn(y_batch_train , output)
-                    #loss_value = edl.losses.EvidentialRegression(y_batch_train, output, coeff = coeff_val)
-                    #loss_value = lamda*loss_value
-                    #loss_value = lamda*loss_fn(x_batch_train_ref_rr , output)
+                    #loss_value = loss_fn(y_batch_train , output)
+                    loss_value = edl.losses.EvidentialRegression(y_batch_train, output, coeff = coeff_val)
                     train_loss_list.append(loss_value)
                 grads = tape.gradient(loss_value, model.trainable_weights)
                 optimizer.apply_gradients(zip(grads, model.trainable_weights)) 
                 train_loss(loss_value)
+                #print(output)
                 with train_summary_writer.as_default():
                     tf.summary.scalar('loss', train_loss.result(), step=epoch)
 
@@ -392,12 +408,10 @@ for item in config_list:
             test_loss_list = []
             best_loss = 100000
             for step , (x_batch_test_raw,y_batch_test) in enumerate(test_dataset):
-                #y_batch_test = tf.expand_dims(y_batch_test , axis = -1)
+                y_batch_test = tf.expand_dims(y_batch_test , axis = -1)
                 test_output = model(x_batch_test_raw)
-                test_loss_val = loss_fn(y_batch_test , test_output)
-                #test_loss_val = edl.losses.EvidentialRegression(y_batch_test , test_output , coeff = coeff_val)
-                #test_loss_val = lamda*test_loss_val
-                #test_loss_val = lamda*loss_fn(x_batch_test_ref_rr , test_output)
+                #test_loss_val = loss_fn(y_batch_test , test_output)
+                test_loss_val = edl.losses.EvidentialRegression(y_batch_test , test_output , coeff = coeff_val)
                 test_loss(test_loss_val)
                 test_loss_list.append(test_loss_val)
                 with test_summary_writer.as_default():
@@ -412,12 +426,21 @@ for item in config_list:
             test_loss.reset_states()
     
     if item == 'confa':
-        lamda = 0.01
-        lr = 1e-4
+        def scheduler (epoch):
+            if epoch <=20:
+                lr = 1e-2
+            elif epoch>=21 and epoch<=50:
+                lr = 1e-3
+            else:
+                lr = 1e-4
+            return lr
+        #lamda = 0.01
+        #lr = 1e-4
+        coeff_val = 0.01
         model_input_shape = (2048,3)
         model  = BRUnet_raw_encoder(model_input_shape)
-        loss_fn = Huber()
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
+        #loss_fn = Huber()
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODEL_WITH_EVI'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -429,29 +452,30 @@ for item in config_list:
         test_dataset = tf.data.Dataset.from_tensor_slices((x_test_raw_sig , x_test_ref_rr))
         test_dataset = test_dataset.batch(128)
 
-        current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        train_log_dir = 'logs/gradient_tape/'+item.upper() + current_time + '/train'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
-        test_log_dir = 'logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
-        train_summary_writer = tf.summary.create_file_writer(train_log_dir)
-        test_summary_writer = tf.summary.create_file_writer(test_log_dir)     
-        
         print("Starting the training for : {}".format(item))
         for epoch in range(num_epochs):
             print("starting the epoch : {}".format(epoch + 1))
             train_loss_list = []
-            optimizer = Adam(learning_rate = scheduler(epoch))
+            lr = scheduler(epoch)
+            optimizer = Adam(learning_rate = lr)
+            current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
+            test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
+            train_summary_writer = tf.summary.create_file_writer(train_log_dir)
+            test_summary_writer = tf.summary.create_file_writer(test_log_dir)   
             for step, (x_batch_train_raw , x_batch_train_ref_rr) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
-                    #x_batch_train_ref_rr = tf.expand_dims(x_batch_train_ref_rr , axis = -1)
+                    x_batch_train_ref_rr = tf.expand_dims(x_batch_train_ref_rr , axis = -1)
                     output = model(x_batch_train_raw , training = True)
-                    loss_value = loss_fn(x_batch_train_ref_rr , output)
-                    #loss_value = edl.losses.EvidentialRegression(x_batch_train_ref_rr, output, coeff = coeff_val)
-                    loss_value = loss_value
+                    #loss_value = loss_fn(x_batch_train_ref_rr , output)
+                    loss_value = edl.losses.EvidentialRegression(x_batch_train_ref_rr, output, coeff = coeff_val)
+                    #loss_value = loss_value
                     #loss_value = lamda*loss_fn(x_batch_train_ref_rr , output)
                     train_loss_list.append(loss_value)
                 grads = tape.gradient(loss_value, model.trainable_weights)
                 optimizer.apply_gradients(zip(grads, model.trainable_weights)) 
                 train_loss(loss_value)
+                print(output)
                 with train_summary_writer.as_default():
                     tf.summary.scalar('loss', train_loss.result(), step=epoch)
 
@@ -463,17 +487,17 @@ for item in config_list:
             best_loss = 100000
 
             for step , (x_batch_test_raw, x_batch_test_ref_rr) in enumerate(test_dataset):
-                #x_batch_test_ref_rr = tf.expand_dims(x_batch_test_ref_rr , axis = -1)
+                x_batch_test_ref_rr = tf.expand_dims(x_batch_test_ref_rr , axis = -1)
                 test_output = model(x_batch_test_raw)
-                test_loss_val = loss_fn(x_batch_test_ref_rr , test_output)
-                #test_loss_val = edl.losses.EvidentialRegression(x_batch_test_ref_rr , test_output , coeff = coeff_val)
-                test_loss_val = test_loss_val
+                #test_loss_val = loss_fn(x_batch_test_ref_rr , test_output)
+                test_loss_val = edl.losses.EvidentialRegression(x_batch_test_ref_rr , test_output , coeff = coeff_val)
+                #test_loss_val = test_loss_val
                 #test_loss_val = lamda*loss_fn(x_batch_test_ref_rr , test_output)
                 test_loss(test_loss_val)
                 test_loss_list.append(test_loss_val)
                 with test_summary_writer.as_default():
                     tf.summary.scalar('loss', test_loss.result(), step=epoch)
-                print(test_output)
+                #print(test_output)
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
@@ -487,9 +511,9 @@ for item in config_list:
         lr = 1e-4
         model_input_shape = (2048,3)
         model  = BRUnet_raw_multi(model_input_shape)
-        #optimizer = Adam(learning_rate = lr)
-        loss_fn = Huber()
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
+        optimizer = Adam(learning_rate = lr)
+        #loss_fn = Huber()
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODEL_WITH_EVI'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)        
@@ -502,8 +526,8 @@ for item in config_list:
         test_dataset = test_dataset.batch(128)
 
         current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        train_log_dir = 'logs/gradient_tape/'+item.upper() + current_time + '/train'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
-        test_log_dir = 'logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
+        train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
+        test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
         train_summary_writer = tf.summary.create_file_writer(train_log_dir)
         test_summary_writer = tf.summary.create_file_writer(test_log_dir)
         
@@ -511,16 +535,16 @@ for item in config_list:
         for epoch in range(num_epochs):
             print("starting the epoch : {}".format(epoch + 1))
             train_loss_list = []
-            optimizer = Adam(learning_rate = scheduler(epoch))
+            #optimizer = Adam(learning_rate = scheduler(epoch))
             for step, (x_batch_train_raw , y_batch_train, x_batch_train_ref_rr) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
-                    #y_batch_train = tf.expand_dims(y_batch_train , axis = -1)
+                    y_batch_train = tf.expand_dims(y_batch_train , axis = -1)
                     output, out_rr = model(x_batch_train_raw , training = True)
                     #mu, v, alpha, beta = tf.split(output, 4, axis=-1)
-                    #loss_value = edl.losses.EvidentialRegression(y_batch_train,output,coeff = coeff_val)
-                    loss_value = loss_fn(y_batch_train , output)
-                    #loss_value_rr = edl.losses.EvidentialRegression(x_batch_train_ref_rr,out_rr,coeff = coeff_val)
-                    loss_value_rr = loss_fn(x_batch_train_ref_rr, out_rr)
+                    loss_value = edl.losses.EvidentialRegression(y_batch_train,output,coeff = coeff_val)
+                    #loss_value = loss_fn(y_batch_train , output)
+                    loss_value_rr = edl.losses.EvidentialRegression(x_batch_train_ref_rr,out_rr,coeff = coeff_val)
+                    #loss_value_rr = loss_fn(x_batch_train_ref_rr, out_rr)
                     net_loss_value = loss_value + loss_value_rr
                     train_loss_list.append(net_loss_value)
 
@@ -538,12 +562,12 @@ for item in config_list:
             best_loss = 100000
 
             for step , (x_batch_test_raw , y_batch_test , x_batch_test_ref_rr) in enumerate(test_dataset):
-                #y_batch_test = tf.expand_dims(y_batch_test , axis = -1)
+                y_batch_test = tf.expand_dims(y_batch_test , axis = -1)
                 test_output,test_out_rr = model(x_batch_test_raw , training = False)
-                #test_loss_resp = edl.losses.EvidentialRegression(y_batch_test , test_output , coeff = coeff_val)
-                test_loss_resp = loss_fn(y_batch_test , test_output)
-                #test_loss_rr = edl.losses.EvidentialRegression(x_batch_test_ref_rr , test_out_rr , coeff = coeff_val)
-                test_loss_rr = loss_fn(x_batch_test_ref_rr , test_out_rr)
+                test_loss_resp = edl.losses.EvidentialRegression(y_batch_test , test_output , coeff = coeff_val)
+                #test_loss_resp = loss_fn(y_batch_test , test_output)
+                test_loss_rr = edl.losses.EvidentialRegression(x_batch_test_ref_rr , test_out_rr , coeff = coeff_val)
+                #test_loss_rr = loss_fn(x_batch_test_ref_rr , test_out_rr)
                 test_loss_val = test_loss_resp + test_loss_rr
                 test_loss(test_loss_val)
                 test_loss_list.append(test_loss_val)

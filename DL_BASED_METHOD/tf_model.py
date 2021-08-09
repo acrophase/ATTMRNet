@@ -173,9 +173,9 @@ class BRUnet(tf.keras.Model):
         d7_ecg = self.de7_ecg(d6_ecg)
         d8_ecg = self.de8_ecg(d7_ecg)
         d9_ecg = self.de9_ecg(d8_ecg)
-        #d10_ecg = self.ev1(d9_ecg)
+        d10_ecg = self.ev1(d9_ecg)
 
-        return  d9_ecg
+        return  d10_ecg
 
 
 class BRUnet_Multi_resp(tf.keras.Model):
@@ -738,12 +738,12 @@ class BRUnet_raw_multi(tf.keras.Model):
         d7_ecg = self.de7_ecg(d6_ecg)
         d8_ecg = self.de8_ecg(d7_ecg)
         d9_ecg = self.de9_ecg(d8_ecg)
-        #d10_ecg = self.ev2(d9_ecg)
+        d10_ecg = self.ev2(d9_ecg)
 
         out_4 = tf.expand_dims(out_4 , axis = 1)
-        #out_5 = tf.expand_dims(out_5 , axis = 1)
+        out_5 = tf.expand_dims(out_5 , axis = 1)
 
-        return d9_ecg, out_4
+        return d10_ecg, out_5
 
 
 
