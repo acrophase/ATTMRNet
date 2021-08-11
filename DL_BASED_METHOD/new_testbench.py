@@ -108,16 +108,9 @@ x_test_raw_sig = tensor_raw_data[tf.convert_to_tensor(~(training_ids.values))]
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-config_list = ["confd"]#["confa","confb","confc","confd","confe","conff"]
+config_list = ["confb"]#["confa","confb","confc","confd","confe","conff"]
 
-def scheduler (epoch):
-    if epoch <=20:
-        lr = 1e-2
-    elif epoch>=21 and epoch<=50:
-        lr = 1e-3
-    else:
-        lr = 1e-4
-    return lr
+
 
 start = timeit.default_timer()
 for item in config_list:
@@ -125,7 +118,6 @@ for item in config_list:
         #lamda = 0.01
         lr = 1e-4
         coeff_val = 1e-3
-        
         #loss_fn = Huber()
         model_input_shape = (128,3)
         model  = BRUnet(model_input_shape)
@@ -165,7 +157,7 @@ for item in config_list:
                 grads = tape.gradient(loss_value, model.trainable_weights)
                 optimizer.apply_gradients(zip(grads, model.trainable_weights)) 
                 train_loss(loss_value)
-                #print(output)
+                print(output)
                 with train_summary_writer.as_default():
                     tf.summary.scalar('loss', train_loss.result(), step=epoch)
 
@@ -196,7 +188,7 @@ for item in config_list:
         
     if item == "confd":
         #lamda = 0.01
-        #lr = 1e-4
+        lr = 1e-4
         coeff_val = 0.01
         model_input_shape = (128,3)
         model  = BRUnet_Multi_resp(model_input_shape)
@@ -208,6 +200,12 @@ for item in config_list:
         train_loss = tf.keras.metrics.Mean('train_loss', dtype=tf.float32)
         test_loss = tf.keras.metrics.Mean('test_loss', dtype=tf.float32)
 
+        current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
+        test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
+        train_summary_writer = tf.summary.create_file_writer(train_log_dir)
+        test_summary_writer = tf.summary.create_file_writer(test_log_dir)
+        
         train_dataset = tf.data.Dataset.from_tensor_slices((x_train_data , y_train_data, x_train_ref_rr))
         train_dataset = train_dataset.shuffle(len(x_train_data)).batch(128)
         test_dataset = tf.data.Dataset.from_tensor_slices((x_test_data , y_test_data, x_test_ref_rr))
@@ -219,11 +217,7 @@ for item in config_list:
             train_loss_list = []
             lr = scheduler(epoch)
             optimizer = Adam(learning_rate = lr)
-            current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
-            test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
-            train_summary_writer = tf.summary.create_file_writer(train_log_dir)
-            test_summary_writer = tf.summary.create_file_writer(test_log_dir)
+
             for step, (x_batch_train , y_batch_train, x_batch_train_ref_rr) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
                     y_batch_train = tf.expand_dims(y_batch_train , axis = -1)
@@ -238,7 +232,7 @@ for item in config_list:
                 grads = tape.gradient(net_loss_value, model.trainable_weights)
                 optimizer.apply_gradients(zip(grads, model.trainable_weights)) 
                 train_loss(net_loss_value)
-                #print(out_rr)
+                print(out_rr)
                 #print("###############################################")
                 #print(out_rr)
                 with train_summary_writer.as_default():
@@ -301,17 +295,18 @@ for item in config_list:
         test_dataset = tf.data.Dataset.from_tensor_slices((x_test_data , x_test_ref_rr))
         test_dataset = test_dataset.batch(128)
 
+        current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'+"__"+'coeff_'+str(coeff_val)
+        test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'+"__"+'coeff_'+str(coeff_val)
+        train_summary_writer = tf.summary.create_file_writer(train_log_dir)
+        test_summary_writer = tf.summary.create_file_writer(test_log_dir)
         print("Starting the training for : {}".format(item))
         for epoch in range(num_epochs):
             print("starting the epoch : {}".format(epoch + 1))
             lr = scheduler(epoch)
             optimizer = Adam(learning_rate = lr)
             train_loss_list = []
-            current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
-            test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
-            train_summary_writer = tf.summary.create_file_writer(train_log_dir)
-            test_summary_writer = tf.summary.create_file_writer(test_log_dir)
+
             for step, (x_batch_train , x_batch_train_ref_rr) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
                     #import pdb;pdb.set_trace()
@@ -349,7 +344,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+'lr_'+str(lr)+'__'+'coeff_'+str(coeff_val)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+'__'+'coeff_'+str(coeff_val)+'.h5'))
             print("validation loss -- {}".format(mean_loss)) 
             train_loss.reset_states()
             test_loss.reset_states()
@@ -357,6 +352,12 @@ for item in config_list:
     if item == "confe":
         #lamda = 0.01
         #lr = 1e-3
+        def scheduler (epoch):
+            if epoch <=20:
+                lr = 1e-2
+            else:
+                lr = 1e-4
+            return lr
         coeff_val = 1e-4
         model_input_shape = (2048,3)
         model  = BRUnet_raw(model_input_shape)
@@ -373,20 +374,17 @@ for item in config_list:
         train_dataset = train_dataset.shuffle(len(x_train_raw_sig)).batch(128)
         test_dataset = tf.data.Dataset.from_tensor_slices((x_test_raw_sig , y_test_data))
         test_dataset = test_dataset.batch(128)
-
-
         
+        current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'+"__"+'coeff_'+str(coeff_val)
+        test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'+"__"+'coeff_'+str(coeff_val)
+        train_summary_writer = tf.summary.create_file_writer(train_log_dir)
+        test_summary_writer = tf.summary.create_file_writer(test_log_dir)
         print("Starting the training for : {}".format(item))
         for epoch in range(num_epochs):
             print("starting the epoch : {}".format(epoch + 1))
             train_loss_list = []
-            lr = scheduler(epoch)
-            optimizer = Adam(learning_rate = lr)
-            current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
-            test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
-            train_summary_writer = tf.summary.create_file_writer(train_log_dir)
-            test_summary_writer = tf.summary.create_file_writer(test_log_dir)
+            optimizer = Adam(learning_rate = scheduler(epoch))
             for step, (x_batch_train_raw , y_batch_train) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
                     y_batch_train = tf.expand_dims(y_batch_train , axis = -1)
@@ -397,7 +395,7 @@ for item in config_list:
                 grads = tape.gradient(loss_value, model.trainable_weights)
                 optimizer.apply_gradients(zip(grads, model.trainable_weights)) 
                 train_loss(loss_value)
-                #print(output)
+                print(output)
                 with train_summary_writer.as_default():
                     tf.summary.scalar('loss', train_loss.result(), step=epoch)
 
@@ -420,7 +418,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+'lr_'+str(lr)+'__'+'coeff_'+str(coeff_val)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+'__'+'coeff_'+str(coeff_val)+'.h5'))
             print("validation loss -- {}".format(mean_loss)) 
             train_loss.reset_states()
             test_loss.reset_states()
@@ -507,11 +505,18 @@ for item in config_list:
             test_loss.reset_states()
 
     if item == "conff":
-        lamda = 0.01
-        lr = 1e-4
+        def scheduler (epoch):
+            if epoch <=20:
+                lr = 1e-3
+            else:
+                lr = 1e-4
+            return lr
+        #lamda = 0.01
+        #lr = 1e-4
+        coeff_val = 0.05
         model_input_shape = (2048,3)
         model  = BRUnet_raw_multi(model_input_shape)
-        optimizer = Adam(learning_rate = lr)
+        #optimizer = Adam(learning_rate = lr)
         #loss_fn = Huber()
         save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODEL_WITH_EVI'
         results_path = os.path.join(save_path , item.lower())
@@ -526,8 +531,8 @@ for item in config_list:
         test_dataset = test_dataset.batch(128)
 
         current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
-        test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
+        train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'+"__"+'coeff_'+str(coeff_val)
+        test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'+"__"+'coeff_'+str(coeff_val)
         train_summary_writer = tf.summary.create_file_writer(train_log_dir)
         test_summary_writer = tf.summary.create_file_writer(test_log_dir)
         
@@ -535,7 +540,7 @@ for item in config_list:
         for epoch in range(num_epochs):
             print("starting the epoch : {}".format(epoch + 1))
             train_loss_list = []
-            #optimizer = Adam(learning_rate = scheduler(epoch))
+            optimizer = Adam(learning_rate = scheduler(epoch))
             for step, (x_batch_train_raw , y_batch_train, x_batch_train_ref_rr) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
                     y_batch_train = tf.expand_dims(y_batch_train , axis = -1)
@@ -551,6 +556,7 @@ for item in config_list:
                 grads = tape.gradient(net_loss_value, model.trainable_weights)
                 optimizer.apply_gradients(zip(grads, model.trainable_weights)) 
                 train_loss(net_loss_value)
+                print(output)
                 with train_summary_writer.as_default():
                     tf.summary.scalar('loss', train_loss.result(), step=epoch)
 
@@ -573,7 +579,7 @@ for item in config_list:
                 test_loss_list.append(test_loss_val)
                 with test_summary_writer.as_default():
                     tf.summary.scalar('loss', test_loss.result(), step=epoch)
-                print(test_out_rr)
+                
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
