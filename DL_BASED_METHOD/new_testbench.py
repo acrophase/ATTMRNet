@@ -108,16 +108,14 @@ x_test_raw_sig = tensor_raw_data[tf.convert_to_tensor(~(training_ids.values))]
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-config_list = ["confb"]#["confa","confb","confc","confd","confe","conff"]
-
-
+config_list = ["confe"]#["confa","confb","confc","confd","confe","conff"]
 
 start = timeit.default_timer()
 for item in config_list:
     if item == "confc":
         #lamda = 0.01
         lr = 1e-4
-        coeff_val = 1e-3
+        coeff_val = 0.01
         #loss_fn = Huber()
         model_input_shape = (128,3)
         model  = BRUnet(model_input_shape)
@@ -187,8 +185,16 @@ for item in config_list:
             test_loss.reset_states()
         
     if item == "confd":
+        def scheduler (epoch):
+            if epoch <=20:
+                lr = 1e-2
+        #elif epoch>=21 and epoch<=50:
+            #    lr = 1e-3
+            else:
+                lr = 1e-4
+            return lr
         #lamda = 0.01
-        lr = 1e-4
+        #lr = 1e-4
         coeff_val = 0.01
         model_input_shape = (128,3)
         model  = BRUnet_Multi_resp(model_input_shape)
@@ -201,8 +207,8 @@ for item in config_list:
         test_loss = tf.keras.metrics.Mean('test_loss', dtype=tf.float32)
 
         current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
-        test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
+        train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'+"__"+'coeff_'+str(coeff_val)
+        test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'+"__"+'coeff_'+str(coeff_val)
         train_summary_writer = tf.summary.create_file_writer(train_log_dir)
         test_summary_writer = tf.summary.create_file_writer(test_log_dir)
         
@@ -215,8 +221,7 @@ for item in config_list:
         for epoch in range(num_epochs):
             print("starting the epoch : {}".format(epoch + 1))
             train_loss_list = []
-            lr = scheduler(epoch)
-            optimizer = Adam(learning_rate = lr)
+            optimizer = Adam(learning_rate = scheduler(epoch))
 
             for step, (x_batch_train , y_batch_train, x_batch_train_ref_rr) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
@@ -261,7 +266,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+'lr_'+str(lr)+'__'+'coeff_'+str(coeff_val)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+'__'+'coeff_'+str(coeff_val)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
             print(test_loss.result())
             train_loss.reset_states()
@@ -358,7 +363,7 @@ for item in config_list:
             else:
                 lr = 1e-4
             return lr
-        coeff_val = 1e-4
+        coeff_val = 0.01
         model_input_shape = (2048,3)
         model  = BRUnet_raw(model_input_shape)
         #loss_fn = Huber()
@@ -450,17 +455,18 @@ for item in config_list:
         test_dataset = tf.data.Dataset.from_tensor_slices((x_test_raw_sig , x_test_ref_rr))
         test_dataset = test_dataset.batch(128)
 
+        current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'+"__"+'coeff_'+str(coeff_val)
+        test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'+"__"+'coeff_'+str(coeff_val)
+        train_summary_writer = tf.summary.create_file_writer(train_log_dir)
+        test_summary_writer = tf.summary.create_file_writer(test_log_dir)  
+
         print("Starting the training for : {}".format(item))
         for epoch in range(num_epochs):
             print("starting the epoch : {}".format(epoch + 1))
             train_loss_list = []
             lr = scheduler(epoch)
-            optimizer = Adam(learning_rate = lr)
-            current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
-            test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
-            train_summary_writer = tf.summary.create_file_writer(train_log_dir)
-            test_summary_writer = tf.summary.create_file_writer(test_log_dir)   
+            optimizer = Adam(learning_rate = lr) 
             for step, (x_batch_train_raw , x_batch_train_ref_rr) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
                     x_batch_train_ref_rr = tf.expand_dims(x_batch_train_ref_rr , axis = -1)
@@ -499,7 +505,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+'lr_'+str(lr)+'__'+'coeff_'+str(coeff_val)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+'__'+'coeff_'+str(coeff_val)+'.h5'))
             print("validation loss -- {}".format(mean_loss)) 
             train_loss.reset_states()
             test_loss.reset_states()
@@ -583,7 +589,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+'lr_'+str(lr)+'__'+'coeff_'+str(coeff_val)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+'__'+'coeff_'+str(coeff_val)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
             print(test_loss.result())
             train_loss.reset_states()
