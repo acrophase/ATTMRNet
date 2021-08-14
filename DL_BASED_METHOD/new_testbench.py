@@ -18,11 +18,10 @@ import matplotlib.pyplot as plt
 import timeit
 import random as rn
 
-os.environ['PYTHONHASHSEED'] = str(42)
-#os.environ['CUDA_VISIBLE_DEVICES'] = ''
-np.random.seed(42)
-rn.seed(42)
 tf.random.set_seed(42)
+
+# Call the above function with seed value
+#set_global_determinism(seed=SEED)
 
 srate = 700
 win_length = 32*srate
@@ -108,7 +107,7 @@ x_test_raw_sig = tensor_raw_data[tf.convert_to_tensor(~(training_ids.values))]
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-config_list = ["confe"]#["confa","confb","confc","confd","confe","conff"]
+config_list = ["confd"]#["confa","confb","confc","confd","confe","conff"]
 
 start = timeit.default_timer()
 for item in config_list:
@@ -134,8 +133,8 @@ for item in config_list:
         test_dataset = test_dataset.batch(128)
         
         current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
-        test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'+'lr_'+str(lr)+"__"+'coeff_'+str(coeff_val)
+        train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'+"__"+'coeff_'+str(coeff_val)
+        test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'+"__"+'coeff_'+str(coeff_val)
         train_summary_writer = tf.summary.create_file_writer(train_log_dir)
         test_summary_writer = tf.summary.create_file_writer(test_log_dir)
 
@@ -144,6 +143,7 @@ for item in config_list:
         for epoch in range(num_epochs):
             print("starting the epoch : {}".format(epoch + 1))
             train_loss_list = []
+            #optimizer = Adam(learning_rate = scheduler(epoch))
             for step, (x_batch_train , y_batch_train) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
                     #import pdb;pdb.set_trace()
@@ -178,7 +178,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model'+'lr_'+str(lr)+'__'+'coeff_'+str(coeff_val)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model'+'__'+'coeff_'+str(coeff_val)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
             print(test_loss.result())
             train_loss.reset_states()
@@ -195,11 +195,12 @@ for item in config_list:
             return lr
         #lamda = 0.01
         #lr = 1e-4
-        coeff_val = 0.01
+        coeff_val = 0.005
+        #coeff_val_1 = 0.005
         model_input_shape = (128,3)
         model  = BRUnet_Multi_resp(model_input_shape)
         #loss_fn = Huber()
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODEL_WITH_EVI'
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/TEST_SAVE_MODEL'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)        
@@ -226,6 +227,7 @@ for item in config_list:
             for step, (x_batch_train , y_batch_train, x_batch_train_ref_rr) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
                     y_batch_train = tf.expand_dims(y_batch_train , axis = -1)
+                    x_batch_train_ref_rr = tf.expand_dims(x_batch_train_ref_rr , axis = -1)
                     output, out_rr = model(x_batch_train , training = True)
                     loss_value = edl.losses.EvidentialRegression(y_batch_train,output,coeff = coeff_val)
                     #loss_value = loss_fn(y_batch_train , output)
@@ -252,11 +254,12 @@ for item in config_list:
 
             for step , (x_batch_test,y_batch_test,x_batch_test_ref_rr) in enumerate(test_dataset):
                 y_batch_test = tf.expand_dims(y_batch_test , axis = -1)
+                x_batch_test_ref_rr = tf.expand_dims(x_batch_test_ref_rr , axis = -1)
                 test_output,test_out_rr = model(x_batch_test)
                 #test_loss_resp = loss_fn(y_batch_test , test_output)
                 test_loss_resp = edl.losses.EvidentialRegression(y_batch_test , test_output , coeff = coeff_val)
                 #test_loss_rr = loss_fn(x_batch_test_ref_rr , test_out_rr)
-                test_loss_rr = edl.losses.EvidentialRegression(x_batch_test_ref_rr , test_out_rr , coeff = coeff_val)
+                test_loss_rr = edl.losses.EvidentialRegression(x_batch_test_ref_rr , test_out_rr , coeff = coeff_val_1)
                 test_loss_val = test_loss_resp + test_loss_rr
                 test_loss(test_loss_val)
                 test_loss_list.append(test_loss_val)
@@ -283,7 +286,7 @@ for item in config_list:
             return lr
         #lamda = 0.01
         ##lr = 1e-3
-        coeff_val = 0.01
+        coeff_val = 0.005
         model_input_shape = (128,3)
         model  = BRUnet_Encoder(model_input_shape)
         #optimizer = Adam(learning_rate = lr)
@@ -443,7 +446,7 @@ for item in config_list:
         model_input_shape = (2048,3)
         model  = BRUnet_raw_encoder(model_input_shape)
         #loss_fn = Huber()
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODEL_WITH_EVI'
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/TEST_SAVE_MODEL'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
