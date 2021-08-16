@@ -188,8 +188,8 @@ for item in config_list:
         def scheduler (epoch):
             if epoch <=20:
                 lr = 1e-2
-            elif epoch>=21 and epoch<=50:
-                lr = 1e-3
+        #elif epoch>=21 and epoch<=50:
+            #    lr = 1e-3
             else:
                 lr = 1e-4
             return lr
