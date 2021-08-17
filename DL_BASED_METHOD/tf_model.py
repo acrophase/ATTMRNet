@@ -234,7 +234,7 @@ class BRUnet_Multi_resp(tf.keras.Model):
         
         self.fc = layers.Dense(1)
 
-        self.ev1 = edl.layers.DenseNormalGamma(1)
+        #self.ev1 = edl.layers.DenseNormalGamma(1)
 
         self.de1_ecg = keras.Sequential([Conv1DTranspose(512, kernel_size = 1,strides = 1),
                                          layers.BatchNormalization(axis = -1),
