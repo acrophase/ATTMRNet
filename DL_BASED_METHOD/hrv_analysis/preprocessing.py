@@ -8,7 +8,7 @@ from typing import Tuple
 
 import numpy as np
 import pandas as pd
-
+print("Hello")
 # Static name for methods params
 MALIK_RULE = "malik"
 KARLSSON_RULE = "karlsson"
