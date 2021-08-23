@@ -1,4 +1,34 @@
+#from numpy.random import seed
+#seed(42)
+#import tensorflow
+#tensorflow.random.set_seed(42)
+# Seed value
+# Apparently you may use different seed values at each stage
+seed_value= 42
+# 1. Set the `PYTHONHASHSEED` environment variable at a fixed value
+import os
+os.environ['PYTHONHASHSEED']=str(seed_value)
+# 2. Set the `python` built-in pseudo-random generator at a fixed value
+import random
+random.seed(seed_value)
+# 3. Set the `numpy` pseudo-random generator at a fixed value
 import numpy as np
+np.random.seed(seed_value)
+# 4. Set the `tensorflow` pseudo-random generator at a fixed value
+import tensorflow as tf
+tf.random.set_seed(seed_value)
+# for later versions: 
+# tf.compat.v1.set_random_seed(seed_value)
+# 5. Configure a new global `tensorflow` session
+from keras import backend as K
+session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+sess =tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
+K.set_session(sess)
+# for later versions:
+# session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+# sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
+# tf.compat.v1.keras.backend.set_session(sess)
+#import numpy as np
 import pandas as pd
 from data_extraction import *
 from resp_signal_extraction import *
@@ -16,13 +46,38 @@ import datetime
 import os
 import matplotlib.pyplot as plt
 import timeit
-import random as rn
+import sys
+#import random as rn
 
-tf.random.set_seed(42)
+#tf.compat.v1.set_random_seed(42)
+
+'''
+def set_seeds(seed=42):
+    os.environ['PYTHONHASHSEED'] = str(42)
+    rn.seed(42)
+    tf.random.set_seed(42)
+    np.random.seed(42)
+
+def set_global_determinism(seed1=42):
+    set_seeds(seed=seed1)
+
+    os.environ['TF_DETERMINISTIC_OPS'] = '1'
+    os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
+    
+    tf.config.threading.set_inter_op_parallelism_threads(1)
+    tf.config.threading.set_intra_op_parallelism_threads(1)
 
 # Call the above function with seed value
-#set_global_determinism(seed=SEED)
+set_global_determinism(seed1=42)
 
+os.environ['PYTHONHASHSEED']=str(SEED)
+os.environ['TF_CUDNN_DETERMINISTIC'] = '1'  # new flag present in tf 2.0+
+rn.seed(SEED)
+np.random.seed(SEED)
+tf.random.set_seed(SEED)
+# Call the above function with seed value
+#set_global_determinism(seed=SEED)
+'''
 srate = 700
 win_length = 32*srate
 
@@ -84,11 +139,16 @@ with open('input','rb') as f:
 with open('raw_signal.pkl','rb') as f:
     raw_data = pkl.load(f)
 
-input_data = input_data.reshape(input_data.shape[0],input_data.shape[-1],input_data.shape[1])
-raw_data = raw_data.reshape(raw_data.shape[0],raw_data.shape[-1],raw_data.shape[1])
+input_data = np.transpose(input_data, (0,2,1))
+raw_data = np.transpose(raw_data, (0,2,1))
+
+input_data = np.around(input_data , decimals = 4)
+raw_data = np.around(raw_data , decimals = 4)
+output_data = np.around(output_data , decimals = 4)
 
 annotation = pd.read_pickle('/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/annotation.pkl')
 reference_rr = (annotation['Reference_RR'].values).reshape(-1,1)
+reference_rr = np.around(reference_rr , decimals = 4)
 
 tensor_input = tf.convert_to_tensor(input_data , dtype = 'float32')
 tensor_output = tf.convert_to_tensor(output_data , dtype = 'float32')
@@ -107,8 +167,7 @@ x_test_raw_sig = tensor_raw_data[tf.convert_to_tensor(~(training_ids.values))]
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-config_list = ["confe"] #["confa","confb","confc","confd","confe","conff"]
-
+config_list = ["confa","confd","confe","conff"] #["confa","confb","confc","confd","confe","conff"]
 start = timeit.default_timer()
 for item in config_list:
     if item == "confc":
@@ -118,7 +177,7 @@ for item in config_list:
         model_input_shape = (128,3)
         model  = BRUnet(model_input_shape)
         optimizer = Adam(learning_rate = lr)
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/TEST_SAVE_MODEL'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -131,6 +190,7 @@ for item in config_list:
         test_dataset = tf.data.Dataset.from_tensor_slices((x_test_data , y_test_data))
         test_dataset = test_dataset.batch(128)
         
+        #inp_means = [tf.math.reduce_mean(data) for _,(data,_) in enumerate(train_dataset)]
         current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'
         test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'
@@ -143,13 +203,16 @@ for item in config_list:
             train_loss_list = []
             for step, (x_batch_train , y_batch_train) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
+                    #import pdb;pdb.set_trace()
+                    #print(tf.math.reduce_mean(x_batch_train))
                     output = model(x_batch_train , training = True)
+                    #print(tf.math.reduce_mean(output))
                     loss_value = loss_fn(y_batch_train , output)
                     train_loss_list.append(loss_value)
                 grads = tape.gradient(loss_value, model.trainable_weights)
                 optimizer.apply_gradients(zip(grads, model.trainable_weights)) 
                 train_loss(loss_value)
-                print(output)
+                #print(tf.math.reduce_mean(output))
                 with train_summary_writer.as_default():
                     tf.summary.scalar('loss', train_loss.result(), step=epoch)
 
@@ -160,19 +223,22 @@ for item in config_list:
             test_loss_list = []
             best_loss = 100000
             for step , (x_batch_test,y_batch_test) in enumerate(test_dataset):
+                #import pdb;pdb.set_trace()
+                #print(tf.math.reduce_mean(x_batch_test))
                 test_output = model(x_batch_test , training = False)
+                #print(tf.math.reduce_mean(test_output))
                 test_loss_val = loss_fn(y_batch_test ,test_output)
                 test_loss(test_loss_val)
                 test_loss_list.append(test_loss_val)
                 with test_summary_writer.as_default():
                     tf.summary.scalar('loss', test_loss.result(), step=epoch)
-                print(test_output)
+               #print(test_output)
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
                 model.save_weights(os.path.join(results_path, 'best_model'+'.h5'))
             print("validation loss -- {}".format(mean_loss))
-            print(test_loss.result())
+            #print(test_loss.result())
             train_loss.reset_states()
             test_loss.reset_states()
         
@@ -262,7 +328,7 @@ for item in config_list:
         model_input_shape = (128,3)
         model  = BRUnet_Encoder(model_input_shape)
         loss_fn = Huber()
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/TEST_SAVE_MODEL'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -330,7 +396,7 @@ for item in config_list:
         model_input_shape = (2048,3)
         model  = BRUnet_raw(model_input_shape)
         loss_fn = Huber()
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/TEST_SAVE_MODEL'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -396,7 +462,7 @@ for item in config_list:
         model_input_shape = (2048,3)
         model  = BRUnet_raw_encoder(model_input_shape)
         loss_fn = Huber()
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/TEST_SAVE_MODEL'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -465,7 +531,7 @@ for item in config_list:
         model_input_shape = (2048,3)
         model  = BRUnet_raw_multi(model_input_shape)
         loss_fn = Huber()
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODELS'
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/TEST_SAVE_MODEL'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)        
