@@ -547,9 +547,9 @@ for item in config_list:
     if item == "conff":
         def scheduler (epoch):
             if epoch <=20:
-                lr = 1e-2
+                lr = 1e-3
             else:
-                lr = 1e-4
+                lr = 1e-5
             return lr
         coeff_val = 0.05
         model_input_shape = (2048,3)
