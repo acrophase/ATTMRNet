@@ -1,13 +1,9 @@
-#from numpy.random import seed
-#seed(42)
-#import tensorflow
-#tensorflow.random.set_seed(42)
-# Seed value
 # Apparently you may use different seed values at each stage
-seed_value= 42
+seed_value= 0
 # 1. Set the `PYTHONHASHSEED` environment variable at a fixed value
 import os
 os.environ['PYTHONHASHSEED']=str(seed_value)
+#os.environ['CUDA_VISIBLE_DEVICES']= "-1"
 # 2. Set the `python` built-in pseudo-random generator at a fixed value
 import random
 random.seed(seed_value)
@@ -17,25 +13,12 @@ np.random.seed(seed_value)
 # 4. Set the `tensorflow` pseudo-random generator at a fixed value
 import tensorflow as tf
 tf.random.set_seed(seed_value)
-# for later versions: 
-# tf.compat.v1.set_random_seed(seed_value)
-# 5. Configure a new global `tensorflow` session
-from keras import backend as K
-session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
-sess =tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
-K.set_session(sess)
-# for later versions:
-# session_conf = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
-# sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
-# tf.compat.v1.keras.backend.set_session(sess)
-#import numpy as np
 import pandas as pd
 from data_extraction import *
 from resp_signal_extraction import *
 from rr_extration import *
 from sklearn.preprocessing import MinMaxScaler
 import re
-import tensorflow as tf
 import pickle as pkl
 from tf_model import *
 from tensorflow.keras.callbacks import ModelCheckpoint
@@ -167,7 +150,7 @@ x_test_raw_sig = tensor_raw_data[tf.convert_to_tensor(~(training_ids.values))]
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-config_list = ["confa","confd","confe","conff"] #["confa","confb","confc","confd","confe","conff"]
+config_list = ["confe"]#["confa","confb","confc","confd","confe","conff"]
 start = timeit.default_timer()
 for item in config_list:
     if item == "confc":
@@ -180,7 +163,7 @@ for item in config_list:
         save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/TEST_SAVE_MODEL'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
-            os.mkdir(results_path)
+            os.mkdir(results)
 
         train_loss = tf.keras.metrics.Mean('train_loss', dtype=tf.float32)
         test_loss = tf.keras.metrics.Mean('test_loss', dtype=tf.float32)
@@ -190,7 +173,7 @@ for item in config_list:
         test_dataset = tf.data.Dataset.from_tensor_slices((x_test_data , y_test_data))
         test_dataset = test_dataset.batch(128)
         
-        #inp_means = [tf.math.reduce_mean(data) for _,(data,_) in enumerate(train_dataset)]
+        inp_means = [tf.math.reduce_mean(data) for _,(data,_) in enumerate(train_dataset)]
         current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         train_log_dir = 'evi/logs/gradient_tape/'+item.upper() + current_time + '/train'
         test_log_dir = 'evi/logs/gradient_tape/' +item.upper()+ current_time + '/test'
@@ -236,7 +219,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model'+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
             #print(test_loss.result())
             train_loss.reset_states()
@@ -286,7 +269,7 @@ for item in config_list:
                 grads = tape.gradient(net_loss_value, model.trainable_weights)
                 optimizer.apply_gradients(zip(grads, model.trainable_weights)) 
                 train_loss(net_loss_value)
-                print(out_rr)
+                #print(out_rr)
                 #print("###############################################")
                 #print(out_rr)
                 with train_summary_writer.as_default():
@@ -312,7 +295,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
             print(test_loss.result())
             train_loss.reset_states()
@@ -360,7 +343,7 @@ for item in config_list:
                 grads = tape.gradient(loss_value, model.trainable_weights)
                 optimizer.apply_gradients(zip(grads, model.trainable_weights)) 
                 train_loss(loss_value)
-                print(output)
+                #print(output)
                 with train_summary_writer.as_default():
                     tf.summary.scalar('loss', train_loss.result(), step=epoch)
 
@@ -381,7 +364,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss)) 
             train_loss.reset_states()
             test_loss.reset_states()
@@ -447,7 +430,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss)) 
             train_loss.reset_states()
             test_loss.reset_states()
@@ -494,7 +477,7 @@ for item in config_list:
                 grads = tape.gradient(loss_value, model.trainable_weights)
                 optimizer.apply_gradients(zip(grads, model.trainable_weights)) 
                 train_loss(loss_value)
-                print(output)
+                #print(output)
                 with train_summary_writer.as_default():
                     tf.summary.scalar('loss', train_loss.result(), step=epoch)
 
@@ -516,7 +499,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss)) 
             train_loss.reset_states()
             test_loss.reset_states()
@@ -565,7 +548,7 @@ for item in config_list:
                 grads = tape.gradient(net_loss_value, model.trainable_weights)
                 optimizer.apply_gradients(zip(grads, model.trainable_weights)) 
                 train_loss(net_loss_value)
-                print(out_rr)
+                #print(out_rr)
                 with train_summary_writer.as_default():
                     tf.summary.scalar('loss', train_loss.result(), step=epoch)
 
@@ -589,9 +572,9 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
-            print(test_loss.result())
+            #print(test_loss.result())
             train_loss.reset_states()
             test_loss.reset_states()
 end = timeit.default_timer()
