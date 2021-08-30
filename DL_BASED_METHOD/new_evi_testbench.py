@@ -6,8 +6,11 @@
 # Apparently you may use different seed values at each stage
 seed_value= 42
 # 1. Set the `PYTHONHASHSEED` environment variable at a fixed value
+import tensorflow as tf
 import os
+#os.environ['TF_DETERMINISTIC_OPS'] = '1'
 os.environ['PYTHONHASHSEED']=str(seed_value)
+#os.environ['TF_DETERMINISTIC_OPS'] = '1'
 # 2. Set the `python` built-in pseudo-random generator at a fixed value
 import random
 random.seed(seed_value)
@@ -15,7 +18,6 @@ random.seed(seed_value)
 import numpy as np
 np.random.seed(seed_value)
 # 4. Set the `tensorflow` pseudo-random generator at a fixed value
-import tensorflow as tf
 tf.random.set_seed(seed_value)
 # for later versions: 
 # tf.compat.v1.set_random_seed(seed_value)
@@ -48,8 +50,6 @@ import os
 import matplotlib.pyplot as plt
 import timeit
 import random as rn
-
-tf.random.set_seed(42)
 
 # Call the above function with seed value
 #set_global_determinism(seed=SEED)
@@ -218,7 +218,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model'+'__'+'coeff_'+str(coeff_val)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model'+'__'+'coeff_'+str(coeff_val)+'_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
             #print(test_loss.result())
             train_loss.reset_states()
@@ -228,12 +228,10 @@ for item in config_list:
         def scheduler (epoch):
             if epoch <=20:
                 lr = 1e-2
-        #elif epoch>=21 and epoch<=50:
-            #    lr = 1e-3
             else:
                 lr = 1e-4
             return lr
-        coeff_val = 0.005
+        coeff_val = 0.01
         #coeff_val_1 = 0.005
         model_input_shape = (128,3)
         model  = BRUnet_Multi_resp_evi(model_input_shape)
@@ -306,7 +304,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+'__'+'coeff_'+str(coeff_val)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model'+'__'+'coeff_'+str(coeff_val)+'_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
             print(test_loss.result())
             train_loss.reset_states()
@@ -316,8 +314,8 @@ for item in config_list:
         def scheduler (epoch):
             if epoch <=20:
                 lr = 1e-2
-            elif epoch>=21 and epoch<=50:
-                lr = 1e-3
+            #elif epoch>=11 and epoch<=30:
+            #    lr = 1e-3
             else:
                 lr = 1e-4
             return lr
@@ -387,7 +385,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+'__'+'coeff_'+str(coeff_val)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model'+'__'+'coeff_'+str(coeff_val)+'_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss)) 
             train_loss.reset_states()
             test_loss.reset_states()
@@ -399,12 +397,12 @@ for item in config_list:
             else:
                 lr = 1e-4
             return lr
-        coeff_val = 0.01
+        coeff_val = 0.005
         model_input_shape = (2048,3)
         model  = BRUnet_raw_evi(model_input_shape)
         #loss_fn = Huber()
 
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/SAVED_MODEL_WITH_EVI'
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/TEST_SAVE_MODEL'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -459,7 +457,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+'__'+'coeff_'+str(coeff_val)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model'+'__'+'coeff_'+str(coeff_val)+'_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss)) 
             train_loss.reset_states()
             test_loss.reset_states()
@@ -539,7 +537,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+'__'+'coeff_'+str(coeff_val)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model'+'__'+'coeff_'+str(coeff_val)+'_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss)) 
             train_loss.reset_states()
             test_loss.reset_states()
@@ -622,7 +620,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+'__'+'coeff_'+str(coeff_val)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model'+'__'+'coeff_'+str(coeff_val)+'_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
             print(test_loss.result())
             train_loss.reset_states()
