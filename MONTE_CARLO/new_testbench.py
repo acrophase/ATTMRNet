@@ -64,9 +64,9 @@ tf.random.set_seed(SEED)
 srate = 700
 win_length = 32*srate
 
-num_epochs = 10
+num_epochs = 100
 #config = input("Enter the configuration :")
-data_path = 'C:/Users/ee19s/Desktop/Journal_Work/BR_Uncertainty/MONTE_CARLO/ppg_dalia_data'
+data_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/ppg_dalia_data'
 data = extract_data(data_path , srate , win_length)
   
 #saved_model_path = os.path.join( 
@@ -129,7 +129,7 @@ input_data = np.around(input_data , decimals = 4)
 raw_data = np.around(raw_data , decimals = 4)
 output_data = np.around(output_data , decimals = 4)
 
-annotation = pd.read_pickle('C:/Users/ee19s/Desktop/Journal_Work/BR_Uncertainty/MONTE_CARLO/annotation.pkl ')
+annotation = pd.read_pickle('/media/acrophase/Sentinel_1/charan/BR_Uncertainty/MONTE_CARLO/annotation.pkl')
 reference_rr = (annotation['Reference_RR'].values).reshape(-1,1)
 reference_rr = np.around(reference_rr , decimals = 4)
 
@@ -150,20 +150,20 @@ x_test_raw_sig = tensor_raw_data[tf.convert_to_tensor(~(training_ids.values))]
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-config_list = ["confc"]#["confa","confb","confc","confd","confe","conff"]
+config_list = ["confe"]#["confa","confb","confc","confd","confe","conff"]
 start = timeit.default_timer()
 for item in config_list:
     if item == "confc":
-        lr = 1e-4
+        lr = 1e-5
         #coeff_val = 0.01
         loss_fn = Huber()
         model_input_shape = (128,3)
         model  = BRUnet(model_input_shape)
         optimizer = Adam(learning_rate = lr)
-        save_path = 'C:/Users/ee19s/Desktop/Journal_Work/BR_Uncertainty/MONTE_CARLO/TEST_SAVE_MODEL'
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/MONTE_CARLO/TEST_SAVE_MODEL'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
-            os.mkdir(results)
+            os.mkdir(results_path)
 
         train_loss = tf.keras.metrics.Mean('train_loss', dtype=tf.float32)
         test_loss = tf.keras.metrics.Mean('test_loss', dtype=tf.float32)
@@ -235,7 +235,7 @@ for item in config_list:
         model_input_shape = (128,3)
         model  = BRUnet_Multi_resp(model_input_shape)
         loss_fn = Huber()
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/TEST_SAVE_MODEL'
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/MONTE_CARLO/TEST_SAVE_MODEL'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)        
@@ -311,7 +311,7 @@ for item in config_list:
         model_input_shape = (128,3)
         model  = BRUnet_Encoder(model_input_shape)
         loss_fn = Huber()
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/TEST_SAVE_MODEL'
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/MONTE_CARLO/TEST_SAVE_MODEL'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -372,14 +372,14 @@ for item in config_list:
     if item == "confe":
         def scheduler (epoch):
             if epoch <=20:
-                lr = 1e-2
+                lr = 1e-3
             else:
-                lr = 1e-4
+                lr = 1e-5
             return lr
         model_input_shape = (2048,3)
         model  = BRUnet_raw(model_input_shape)
         loss_fn = Huber()
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/TEST_SAVE_MODEL'
+        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/MONTE_CARLO/TEST_SAVE_MODEL'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
