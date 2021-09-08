@@ -554,11 +554,11 @@ class BRUnet_raw(tf.keras.Model):
 
         self.de8_ecg = keras.Sequential([Conv1DTranspose(1 , kernel_size = 1 , strides = 1, padding = 'same'),
                                         layers.LeakyReLU(alpha = 0.2),
-                                        MonteCarloDropout(rate = 0.1),])
+                                        MonteCarloDropout(rate = 0.1)])
         
         self.de9_ecg = keras.Sequential([Conv1DTranspose(1, kernel_size = 1 , strides = 1 , padding = 'same'),
                                          layers.LeakyReLU(alpha = 0.2),
-                                         MonteCarloDropout(rate = 0.1),])
+                                         MonteCarloDropout(rate = 0.1)])
 
         #self.ev1 = edl.layers.DenseNormalGamma(1)
     def call(self,x,training = False):
@@ -593,51 +593,60 @@ class BRUnet_raw_encoder(tf.keras.Model):
         self.en1 = keras.Sequential([layers.Conv1D(32 , kernel_size = 3, padding = 'same',input_shape = in_channels),
                                      layers.BatchNormalization(axis = -1),
                                      layers.LeakyReLU(alpha = 0.2),
+                                     MonteCarloDropout(rate = 0.1),
                                      layers.Conv1D(32 , kernel_size = 5 , strides = 2, padding = 'same'),
                                      IncBlock(32,32)])
 
         self.en2 = keras.Sequential([layers.Conv1D(64, kernel_size = 3 , padding = 'same'),
                                      layers.BatchNormalization(axis = -1),
                                      layers.LeakyReLU(alpha = 0.2),
+                                     MonteCarloDropout(rate = 0.1),
                                      layers.Conv1D(64 , kernel_size = 5,strides = 2,padding = 'same'),
                                      IncBlock(64,64)])
         
         self.en3 = keras.Sequential([layers.Conv1D(128 , kernel_size = 3 , padding = 'same'),
                                      layers.BatchNormalization(axis = -1),
                                      layers.LeakyReLU(alpha = 0.2),
+                                     MonteCarloDropout(rate = 0.1),
                                      layers.Conv1D(128 , kernel_size = 3 , strides = 2 , padding = 'same'),
                                      IncBlock(128,128)])
         
         self.en4 = keras.Sequential([layers.Conv1D(256 , kernel_size = 3 , padding = 'same'),
                                      layers.BatchNormalization(axis = -1),
                                      layers.LeakyReLU(alpha = 0.2),
+                                     MonteCarloDropout(rate = 0.1),
                                      layers.Conv1D(256 , kernel_size = 4 , strides = 2 , padding = 'same'),
                                      IncBlock(256,256)])
         
         self.en5 = keras.Sequential([layers.Conv1D(512 , kernel_size = 3 , padding = 'same'),
                                     layers.BatchNormalization(axis = -1),
                                     layers.LeakyReLU(alpha = 0.2),
+                                    MonteCarloDropout(rate = 0.1),
                                     layers.Conv1D(512 , kernel_size = 2 , padding = 'same'),
                                     IncBlock(512,512)])
         
         self.en6 = keras.Sequential([layers.Conv1D(1024 , kernel_size = 3 , padding = 'same'),
                                      layers.BatchNormalization(axis = -1),
                                      layers.LeakyReLU(alpha = 0.2),
+                                     MonteCarloDropout(rate = 0.1),
                                      IncBlock(1024,1024)])
 
         self.en7_p = keras.Sequential([layers.Conv1D(128 , kernel_size = 4, strides = 2,padding='same'),
                                       layers.BatchNormalization(axis = -1),
                                       layers.LeakyReLU(alpha = 0.2),
+                                      MonteCarloDropout(rate = 0.1),
                                       IncBlock(128,128)])
         
         self.en8_p = keras.Sequential([layers.Conv1D(64 , kernel_size = 4 ,strides = 2, padding = 'same'),
                                     layers.BatchNormalization(axis = -1),
                                     layers.LeakyReLU(alpha = 0.2),
+                                    MonteCarloDropout(rate = 0.1),
                                     IncBlock(64,64)])
         
         self.en9_p = keras.Sequential([layers.Conv1D(4 , kernel_size = 4 , strides = 2, padding = 'same'),
                                        layers.BatchNormalization(axis = -1),
                                        layers.LeakyReLU(alpha = 0.2),
+                                       MonteCarloDropout(rate = 0.1),
                                        IncBlock(4,4)])
         
         self.fc = layers.Dense(1)
@@ -665,64 +674,75 @@ class BRUnet_raw_multi(tf.keras.Model):
         self.en1 = keras.Sequential([layers.Conv1D(32 , kernel_size = 3 , padding = 'same',input_shape = in_channels),
                                     layers.BatchNormalization(axis = -1),
                                     layers.LeakyReLU(alpha = 0.2),
+                                    MonteCarloDropout(rate = 0.1),
                                     layers.Conv1D(32 , kernel_size = 5 , strides =2, padding = 'same'),
                                     IncBlock(32,32)])
         
         self.en2 = keras.Sequential([layers.Conv1D(64 , kernel_size = 3 , padding = 'same'),
                                      layers.BatchNormalization(axis = -1),
                                      layers.LeakyReLU(alpha = 0.2),
+                                     MonteCarloDropout(rate = 0.1),
                                      layers.Conv1D(64,kernel_size =5, strides = 2, padding = 'same'),
                                      IncBlock(64,64)])
         
         self.en3 = keras.Sequential([layers.Conv1D(128,kernel_size = 3 , padding = 'same'),
                                      layers.BatchNormalization(axis = -1),
                                      layers.LeakyReLU(alpha = 0.2),
+                                     MonteCarloDropout(rate = 0.1),
                                      layers.Conv1D(64, kernel_size = 3, strides = 2 , padding = 'same'),
                                      IncBlock(128,128)])
         
         self.en4 = keras.Sequential([layers.Conv1D(256 , kernel_size = 3 , padding = 'same'),
                                      layers.BatchNormalization(axis = -1),
                                      layers.LeakyReLU(alpha = 0.2),
+                                     MonteCarloDropout(rate = 0.1),
                                      layers.Conv1D(256 , kernel_size = 4 , strides = 2 , padding = 'same'),
                                      IncBlock(256,256)])
         
         self.en5 = keras.Sequential([layers.Conv1D(256 , kernel_size = 3 , padding = 'same'),
                                     layers.BatchNormalization(axis = -1),
                                     layers.LeakyReLU(alpha = 0.2),
+                                    MonteCarloDropout(rate = 0.1),
                                     layers.Conv1D(256 , kernel_size =3, padding = 'same'),
                                     IncBlock(256,256)])
         
         self.en6 = keras.Sequential([layers.Conv1D(512 , kernel_size = 3 , padding = 'same'),
                                      layers.BatchNormalization(axis = -1),
                                      layers.LeakyReLU(alpha = 0.2),
+                                     MonteCarloDropout(rate = 0.1),
                                      layers.Conv1D(512 , kernel_size = 4, strides = 2 , padding = 'same'),
                                      IncBlock(512,512)])
         
         self.en7 = keras.Sequential([layers.Conv1D(512 , kernel_size = 3 , padding = 'same'),
                                      layers.BatchNormalization(axis = -1),
                                      layers.LeakyReLU(alpha = 0.2),
+                                     MonteCarloDropout(rate = 0.1),
                                      layers.Conv1D(512 , kernel_size = 4, strides = 2 , padding = 'same'),
                                      IncBlock(512,512)])
         
         self.en8 = keras.Sequential([layers.Conv1D(1024 , kernel_size = 3 , padding = 'same'),
                                      layers.BatchNormalization(axis = -1),
                                      layers.LeakyReLU(alpha = 0.2),
+                                     MonteCarloDropout(rate = 0.1),
                                      layers.Conv1D(1024, kernel_size = 4, strides = 2 , padding = 'same'),
                                      IncBlock(1024,1024)])
         
         self.en7_p = keras.Sequential([layers.Conv1D(512 , kernel_size = 4,strides = 2, padding = 'same'),
                                        layers.BatchNormalization(axis = -1),
                                        layers.LeakyReLU(alpha = 0.2),
+                                       MonteCarloDropout(rate = 0.1),
                                        IncBlock(512,512)])
         
         self.en8_p = keras.Sequential([layers.Conv1D(512 , kernel_size = 4 , strides = 2 , padding = 'same'),
                                         layers.BatchNormalization(axis = -1),
                                         layers.LeakyReLU(alpha = 0.2),
+                                        MonteCarloDropout(rate = 0.1),
                                         IncBlock(512,512)])
         
         self.en9_p = keras.Sequential([layers.Conv1D(512 , kernel_size = 4 , strides = 2 , padding = 'same'),
                                        layers.BatchNormalization(axis = -1),
                                        layers.LeakyReLU(alpha = 0.2),
+                                       MonteCarloDropout(rate = 0.1),
                                        IncBlock(512,512)])
         
         self.fc = layers.Dense(1)
@@ -732,50 +752,59 @@ class BRUnet_raw_multi(tf.keras.Model):
         self.de1_ecg = keras.Sequential([layers.Conv1D(512 , kernel_size = 3 , padding = 'same'),
                                         layers.BatchNormalization(axis = -1),
                                         layers.LeakyReLU(alpha = 0.2),
+                                        MonteCarloDropout(rate = 0.1),
                                         Conv1DTranspose(512 , kernel_size = 4 , strides = 2 , padding = 'same'),
                                         IncBlock(512,512)])
         
         self.de2_ecg = keras.Sequential([layers.Conv1D(512 , kernel_size = 3 , padding = 'same'),
                                          layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),
+                                         MonteCarloDropout(rate = 0.1),
                                          Conv1DTranspose(512 , kernel_size = 4 , strides = 2, padding = 'same'),
                                          IncBlock(512,512)])
         
         self.de3_ecg = keras.Sequential([layers.Conv1D(256 , kernel_size = 3 , padding = 'same'),
                                          layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),
+                                         MonteCarloDropout(rate = 0.1),
                                          Conv1DTranspose(256 , kernel_size = 4 , strides = 2 , padding = 'same'),
                                          IncBlock(256,256)])
         
         self.de4_ecg = keras.Sequential([layers.Conv1D(256 , kernel_size = 3 , padding = 'same'),
                                          layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),
+                                         MonteCarloDropout(rate = 0.1),
                                          Conv1DTranspose(256 , kernel_size = 1, strides = 1 , padding = 'same'),
                                          IncBlock(256,256)])
         
         self.de5_ecg = keras.Sequential([Conv1DTranspose(256 , kernel_size = 1, strides = 1 , padding = 'same'),
                                          layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),
+                                         MonteCarloDropout(rate = 0.1),
                                          Conv1DTranspose(256 , kernel_size = 1, strides = 1 , padding = 'same'),
                                          IncBlock(256,256)])
         
         self.de6_ecg = keras.Sequential([Conv1DTranspose(128 , kernel_size = 1,strides = 1, padding = 'same'),
                                          layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),
+                                         MonteCarloDropout(rate = 0.1),
                                          Conv1DTranspose(64 , kernel_size = 1, strides = 1 , padding = 'same'),
                                          IncBlock(64,64)])
         
         self.de7_ecg = keras.Sequential([Conv1DTranspose(8 , kernel_size = 1, strides = 1 , padding = 'same'),
                                         layers.BatchNormalization(axis = -1),
                                         layers.LeakyReLU(alpha = 0.2),
+                                        MonteCarloDropout(rate = 0.1),
                                         Conv1DTranspose(4 , kernel_size = 1, strides = 1 , padding = 'same'),
                                         IncBlock(4,4)])
         
         self.de8_ecg = keras.Sequential([Conv1DTranspose(1 , kernel_size = 1 , strides = 1 , padding = 'same'),
-                                         layers.LeakyReLU(alpha = 0.2)])
+                                         layers.LeakyReLU(alpha = 0.2),
+                                         MonteCarloDropout(rate = 0.1)])
         
         self.de9_ecg = keras.Sequential([Conv1DTranspose(1 , kernel_size = 1 , strides = 1 , padding = 'same'),
-                                         layers.LeakyReLU(alpha = 0.2)])
+                                         layers.LeakyReLU(alpha = 0.2),
+                                         MonteCarloDropout(rate = 0.1)])
         
         #self.ev2 = edl.layers.DenseNormalGamma(1)
     
