@@ -1,18 +1,27 @@
-# Apparently you may use different seed values at each stage
-seed_value= 0
-# 1. Set the `PYTHONHASHSEED` environment variable at a fixed value
-import os
-os.environ['PYTHONHASHSEED']=str(seed_value)
-#os.environ['CUDA_VISIBLE_DEVICES']= "-1"
-# 2. Set the `python` built-in pseudo-random generator at a fixed value
-import random
-random.seed(seed_value)
-# 3. Set the `numpy` pseudo-random generator at a fixed value
-import numpy as np
-np.random.seed(seed_value)
-# 4. Set the `tensorflow` pseudo-random generator at a fixed value
 import tensorflow as tf
-tf.random.set_seed(seed_value)
+import os
+import numpy as np
+import random
+SEED = 0
+#------------------------------------------------------------------------------------
+def set_seeds(seed=SEED):
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    random.seed(seed)
+    tf.random.set_seed(seed)
+    np.random.seed(seed)
+#------------------------------------------------------------------------------------
+def set_global_determinism(seed=SEED):
+    set_seeds(seed=seed)
+
+    os.environ['TF_DETERMINISTIC_OPS'] = '1'
+    os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
+    
+    tf.config.threading.set_inter_op_parallelism_threads(1)
+    tf.config.threading.set_intra_op_parallelism_threads(1)
+
+# Call the above function with seed value
+set_global_determinism(seed=SEED)
+#-----------------------------------------------------------------------------------
 import pandas as pd
 from data_extraction import *
 from resp_signal_extraction import *
@@ -25,48 +34,15 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import Huber
 import evidential_deep_learning as edl
-import datetime
-import os
 import matplotlib.pyplot as plt
-import timeit
-import sys
-#import random as rn
+import datetime
 
-#tf.compat.v1.set_random_seed(42)
-
-'''
-def set_seeds(seed=42):
-    os.environ['PYTHONHASHSEED'] = str(42)
-    rn.seed(42)
-    tf.random.set_seed(42)
-    np.random.seed(42)
-
-def set_global_determinism(seed1=42):
-    set_seeds(seed=seed1)
-
-    os.environ['TF_DETERMINISTIC_OPS'] = '1'
-    os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
-    
-    tf.config.threading.set_inter_op_parallelism_threads(1)
-    tf.config.threading.set_intra_op_parallelism_threads(1)
-
-# Call the above function with seed value
-set_global_determinism(seed1=42)
-
-os.environ['PYTHONHASHSEED']=str(SEED)
-os.environ['TF_CUDNN_DETERMINISTIC'] = '1'  # new flag present in tf 2.0+
-rn.seed(SEED)
-np.random.seed(SEED)
-tf.random.set_seed(SEED)
-# Call the above function with seed value
-#set_global_determinism(seed=SEED)
-'''
 srate = 700
 win_length = 32*srate
 
 num_epochs = 100
 #config = input("Enter the configuration :")
-data_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/ppg_dalia_data'
+data_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ppg_dalia_data'
 data = extract_data(data_path , srate , win_length)
   
 #saved_model_path = os.path.join( 
@@ -129,7 +105,7 @@ input_data = np.around(input_data , decimals = 4)
 raw_data = np.around(raw_data , decimals = 4)
 output_data = np.around(output_data , decimals = 4)
 
-annotation = pd.read_pickle('/media/acrophase/Sentinel_1/charan/BR_Uncertainty/MONTE_CARLO/annotation.pkl')
+annotation = pd.read_pickle('/media/acrophase/pose1/charan/BR_Uncertainty/MONTE_CARLO/annotation.pkl')
 reference_rr = (annotation['Reference_RR'].values).reshape(-1,1)
 reference_rr = np.around(reference_rr , decimals = 4)
 
@@ -150,17 +126,21 @@ x_test_raw_sig = tensor_raw_data[tf.convert_to_tensor(~(training_ids.values))]
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-config_list = ["confe"]#["confa","confb","confc","confd","confe","conff"]
-start = timeit.default_timer()
+config_list = ['confe']#["confa","confb","confc","confd","confe","conff"]
 for item in config_list:
     if item == "confc":
-        lr = 1e-5
-        #coeff_val = 0.01
+        def scheduler (epoch):
+            if epoch <=20:
+                lr = 1e-3
+            else:
+                lr = 1e-5
+            return lr
+        #lr = 1e-4
         loss_fn = Huber()
         model_input_shape = (128,3)
         model  = BRUnet(model_input_shape)
-        optimizer = Adam(learning_rate = lr)
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/MONTE_CARLO/TEST_SAVE_MODEL'
+        #optimizer = Adam(learning_rate = lr)
+        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/MONTE_CARLO/TEST_SAVE_MODEL'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -184,6 +164,7 @@ for item in config_list:
         for epoch in range(num_epochs):
             print("starting the epoch : {}".format(epoch + 1))
             train_loss_list = []
+            optimizer = Adam(learning_rate = scheduler(epoch))
             for step, (x_batch_train , y_batch_train) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
                     #import pdb;pdb.set_trace()
@@ -235,7 +216,7 @@ for item in config_list:
         model_input_shape = (128,3)
         model  = BRUnet_Multi_resp(model_input_shape)
         loss_fn = Huber()
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/MONTE_CARLO/TEST_SAVE_MODEL'
+        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/MONTE_CARLO/TEST_SAVE_MODEL'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)        
@@ -311,7 +292,7 @@ for item in config_list:
         model_input_shape = (128,3)
         model  = BRUnet_Encoder(model_input_shape)
         loss_fn = Huber()
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/MONTE_CARLO/TEST_SAVE_MODEL'
+        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/MONTE_CARLO/TEST_SAVE_MODEL'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -372,14 +353,14 @@ for item in config_list:
     if item == "confe":
         def scheduler (epoch):
             if epoch <=20:
-                lr = 1e-3
+                lr = 1e-2
             else:
-                lr = 1e-5
+                lr = 1e-4
             return lr
         model_input_shape = (2048,3)
         model  = BRUnet_raw(model_input_shape)
         loss_fn = Huber()
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/MONTE_CARLO/TEST_SAVE_MODEL'
+        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/MONTE_CARLO/TEST_SAVE_MODEL'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -445,7 +426,7 @@ for item in config_list:
         model_input_shape = (2048,3)
         model  = BRUnet_raw_encoder(model_input_shape)
         loss_fn = Huber()
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/TEST_SAVE_MODEL'
+        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/MONTE_CARLO/TEST_SAVE_MODEL'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -514,7 +495,7 @@ for item in config_list:
         model_input_shape = (2048,3)
         model  = BRUnet_raw_multi(model_input_shape)
         loss_fn = Huber()
-        save_path = '/media/acrophase/Sentinel_1/charan/BR_Uncertainty/DL_BASED_METHOD/TEST_SAVE_MODEL'
+        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/MONTE_CARLO/TEST_SAVE_MODEL'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)        
@@ -577,6 +558,6 @@ for item in config_list:
             #print(test_loss.result())
             train_loss.reset_states()
             test_loss.reset_states()
-end = timeit.default_timer()
+
 
 
