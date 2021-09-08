@@ -1,6 +1,4 @@
-# Apparently you may use different seed values at each stage
-seed_value= 0
-# 1. Set the `PYTHONHASHSEED` environment variable at a fixed value
+import tensorflow as tf
 import os
 os.environ['PYTHONHASHSEED']=str(seed_value)
 #os.environ['CUDA_VISIBLE_DEVICES']= "-1"
@@ -9,10 +7,27 @@ import random
 random.seed(seed_value)
 # 3. Set the `numpy` pseudo-random generator at a fixed value
 import numpy as np
-np.random.seed(seed_value)
-# 4. Set the `tensorflow` pseudo-random generator at a fixed value
-import tensorflow as tf
-tf.random.set_seed(seed_value)
+import random
+SEED = 0
+#------------------------------------------------------------------------------------
+def set_seeds(seed=SEED):
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    random.seed(seed)
+    tf.random.set_seed(seed)
+    np.random.seed(seed)
+#------------------------------------------------------------------------------------
+def set_global_determinism(seed=SEED):
+    set_seeds(seed=seed)
+
+    os.environ['TF_DETERMINISTIC_OPS'] = '1'
+    os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
+    
+    tf.config.threading.set_inter_op_parallelism_threads(1)
+    tf.config.threading.set_intra_op_parallelism_threads(1)
+
+# Call the above function with seed value
+set_global_determinism(seed=SEED)
+#-----------------------------------------------------------------------------------
 import pandas as pd
 from data_extraction import *
 from resp_signal_extraction import *
@@ -28,18 +43,7 @@ import evidential_deep_learning as edl
 import datetime
 import os
 import matplotlib.pyplot as plt
-import timeit
-import sys
-#import random as rn
-
-#tf.compat.v1.set_random_seed(42)
-
-'''
-def set_seeds(seed=42):
-    os.environ['PYTHONHASHSEED'] = str(42)
-    rn.seed(42)
-    tf.random.set_seed(42)
-    np.random.seed(42)
+import datetime
 
 def set_global_determinism(seed1=42):
     set_seeds(seed=seed1)
