@@ -126,7 +126,7 @@ x_test_raw_sig = tensor_raw_data[tf.convert_to_tensor(~(training_ids.values))]
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-config_list = ["confa","confb","confc","confd","confe","conff"]
+config_list = ['confe']#["confa","confb","confc","confd","confe","conff"]
 for item in config_list:
     if item == "confc":
         def scheduler (epoch):
