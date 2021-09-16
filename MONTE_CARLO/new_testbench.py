@@ -39,7 +39,7 @@ import datetime
 
 srate = 700
 win_length = 32*srate
-
+lam = 0.001
 num_epochs = 100
 #config = input("Enter the configuration :")
 data_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ppg_dalia_data'
@@ -126,7 +126,7 @@ x_test_raw_sig = tensor_raw_data[tf.convert_to_tensor(~(training_ids.values))]
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-config_list = ['confe']#["confa","confb","confc","confd","confe","conff"]
+config_list = ["confb","confd"]
 for item in config_list:
     if item == "confc":
         def scheduler (epoch):
@@ -140,7 +140,7 @@ for item in config_list:
         model_input_shape = (128,3)
         model  = BRUnet(model_input_shape)
         #optimizer = Adam(learning_rate = lr)
-        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/MONTE_CARLO/TEST_SAVE_MODEL'
+        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/MONTE_CARLO/WITH REGULARISATION'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -200,7 +200,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+"_"+str(lam)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
             #print(test_loss.result())
             train_loss.reset_states()
@@ -216,7 +216,7 @@ for item in config_list:
         model_input_shape = (128,3)
         model  = BRUnet_Multi_resp(model_input_shape)
         loss_fn = Huber()
-        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/MONTE_CARLO/TEST_SAVE_MODEL'
+        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/MONTE_CARLO/WITH REGULARISATION'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)        
@@ -276,7 +276,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+"_"+str(lam)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
             print(test_loss.result())
             train_loss.reset_states()
@@ -292,7 +292,7 @@ for item in config_list:
         model_input_shape = (128,3)
         model  = BRUnet_Encoder(model_input_shape)
         loss_fn = Huber()
-        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/MONTE_CARLO/TEST_SAVE_MODEL'
+        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/MONTE_CARLO/WITH REGULARISATION'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -345,7 +345,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+"_"+str(lam)+'.h5'))
             print("validation loss -- {}".format(mean_loss)) 
             train_loss.reset_states()
             test_loss.reset_states()
@@ -360,7 +360,7 @@ for item in config_list:
         model_input_shape = (2048,3)
         model  = BRUnet_raw(model_input_shape)
         loss_fn = Huber()
-        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/MONTE_CARLO/TEST_SAVE_MODEL'
+        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/MONTE_CARLO/WITH REGULARISATION'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -411,7 +411,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+"_"+str(lam)+'.h5'))
             print("validation loss -- {}".format(mean_loss)) 
             train_loss.reset_states()
             test_loss.reset_states()
@@ -426,7 +426,7 @@ for item in config_list:
         model_input_shape = (2048,3)
         model  = BRUnet_raw_encoder(model_input_shape)
         loss_fn = Huber()
-        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/MONTE_CARLO/TEST_SAVE_MODEL'
+        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/MONTE_CARLO/WITH REGULARISATION'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -480,7 +480,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+"_"+str(lam)+'.h5'))
             print("validation loss -- {}".format(mean_loss)) 
             train_loss.reset_states()
             test_loss.reset_states()
@@ -495,7 +495,7 @@ for item in config_list:
         model_input_shape = (2048,3)
         model  = BRUnet_raw_multi(model_input_shape)
         loss_fn = Huber()
-        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/MONTE_CARLO/TEST_SAVE_MODEL'
+        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/MONTE_CARLO/WITH REGULARISATION'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)        
@@ -553,7 +553,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+"_"+str(lam)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
             #print(test_loss.result())
             train_loss.reset_states()
