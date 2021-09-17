@@ -36,10 +36,11 @@ from tensorflow.keras.losses import Huber
 import evidential_deep_learning as edl
 import matplotlib.pyplot as plt
 import datetime
+import sys
 
 srate = 700
 win_length = 32*srate
-lam = 0.001
+lam = 0.0001
 num_epochs = 100
 #config = input("Enter the configuration :")
 data_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ppg_dalia_data'
@@ -126,7 +127,7 @@ x_test_raw_sig = tensor_raw_data[tf.convert_to_tensor(~(training_ids.values))]
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-config_list = ["confb","confd"]
+config_list = ["confc","confd","confe","conff"]
 for item in config_list:
     if item == "confc":
         def scheduler (epoch):
