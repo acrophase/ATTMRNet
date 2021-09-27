@@ -242,7 +242,7 @@ for item in config_list:
 
             for step, (x_batch_train , y_batch_train, x_batch_train_ref_rr) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
-                    output, out_rr = model(x_batch_train , training = True)
+                    output, out_rr,_,_,_,_,_,_,_,_,_ = model(x_batch_train , training = True)
                     loss_value = loss_fn(y_batch_train , output)
                     loss_value_rr = loss_fn(x_batch_train_ref_rr, out_rr)
                     net_loss_value = loss_value + loss_value_rr
@@ -264,7 +264,7 @@ for item in config_list:
             best_loss = 100000
 
             for step , (x_batch_test,y_batch_test,x_batch_test_ref_rr) in enumerate(test_dataset):
-                test_output,test_out_rr = model(x_batch_test)
+                test_output,test_out_rr,_,_,_,_,_,_,_,_,_ = model(x_batch_test)
                 test_loss_resp = loss_fn(y_batch_test , test_output)
                 test_loss_rr = loss_fn(x_batch_test_ref_rr , test_out_rr)
                 test_loss_val = test_loss_resp + test_loss_rr
@@ -482,7 +482,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-4)+'_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss)) 
             train_loss.reset_states()
             test_loss.reset_states()
@@ -522,7 +522,7 @@ for item in config_list:
             optimizer = Adam(learning_rate = scheduler(epoch))
             for step, (x_batch_train_raw , y_batch_train, x_batch_train_ref_rr) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
-                    output, out_rr = model(x_batch_train_raw , training = True)
+                    output, out_rr,_,_,_,_,_,_,_,_ = model(x_batch_train_raw , training = True)
                     loss_value = loss_fn(y_batch_train , output)
                     loss_value_rr = loss_fn(x_batch_train_ref_rr, out_rr)
                     net_loss_value = loss_value + loss_value_rr
@@ -543,7 +543,7 @@ for item in config_list:
             best_loss = 100000
 
             for step , (x_batch_test_raw , y_batch_test , x_batch_test_ref_rr) in enumerate(test_dataset):
-                test_output,test_out_rr = model(x_batch_test_raw , training = False)
+                test_output,test_out_rr,_,_,_,_,_,_,_,_ = model(x_batch_test_raw , training = False)
                 test_loss_resp = loss_fn(y_batch_test , test_output)
                 test_loss_rr = loss_fn(x_batch_test_ref_rr , test_out_rr)
                 test_loss_val = test_loss_resp + test_loss_rr
