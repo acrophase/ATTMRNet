@@ -628,6 +628,8 @@ class BRUnet_raw(tf.keras.Model):
                                          layers.LeakyReLU(alpha = 0.2),
                                          layers.Conv1DTranspose(256 , kernel_size = 1 , strides = 1, padding = 'same'),
                                          IncBlock(256,256)])
+        
+        self.attn5 = AttentionBlock(256)
 
         self.de6_ecg = keras.Sequential([layers.Conv1DTranspose(128 , kernel_size = 1 , strides = 1 , padding = 'same'),
                                          layers.BatchNormalization(axis = -1),
@@ -635,11 +637,15 @@ class BRUnet_raw(tf.keras.Model):
                                          layers.Conv1DTranspose(64 , kernel_size = 1 , strides = 1 , padding = 'same'),
                                          IncBlock(64,64)])
         
+        self.attn6 = AttentionBlock(64)
+
         self.de7_ecg = keras.Sequential([layers.Conv1DTranspose(8,kernel_size = 1 , strides = 1 , padding = 'same'),
                                          layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),
                                          layers.Conv1DTranspose(4 , kernel_size = 1 , strides = 1 , padding = 'same'),
                                          IncBlock(4,4)])
+        
+        self.attn7 = AttentionBlock(4)
 
         self.de8_ecg = keras.Sequential([layers.Conv1DTranspose(1 , kernel_size = 1 , strides = 1, padding = 'same'),
                                         layers.LeakyReLU(alpha = 0.2)])
@@ -668,17 +674,20 @@ class BRUnet_raw(tf.keras.Model):
         d3_ecg = self.de3_ecg(cat_ecg)
         attn3 = self.attn3(d3_ecg , e5)
         cat_ecg = layers.concatenate([d3_ecg,attn3])
-        #import pdb;pdb.set_trace()
         d4_ecg = self.de4_ecg(cat_ecg)
         attn4 = self.attn4(d4_ecg , e4)
         cat_ecg = layers.concatenate([d4_ecg,attn4])
         d5_ecg = self.de5_ecg(cat_ecg)
-        d6_ecg = self.de6_ecg(d5_ecg)
-        d7_ecg = self.de7_ecg(d6_ecg)
-        d8_ecg = self.de8_ecg(d7_ecg)
+        attn5 = self.attn5(d5_ecg)
+        d6_ecg = self.de6_ecg(attn5)
+        attn6 = self.attn6(d6_ecg)
+        d7_ecg = self.de7_ecg(attn6)
+        attn7 = self.attn7(d7_ecg)
+        d8_ecg = self.de8_ecg(attn7)
         d9_ecg = self.de9_ecg(d8_ecg)
-        #d10_ecg = self.ev1(d9_ecg)
-        return d9_ecg,attn1,attn2,attn3,attn4
+    
+        
+        return d9_ecg,attn1,attn2,attn3,attn4,attn5,attn6,attn7
 
 class BRUnet_raw_encoder(tf.keras.Model):
     def __init__(self,in_channels):
@@ -881,18 +890,25 @@ class BRUnet_raw_multi(tf.keras.Model):
                                          layers.Conv1DTranspose(256 , kernel_size = 1, strides = 1 , padding = 'same'),
                                          IncBlock(256,256)])
         
+        self.attn9 = AttentionBlock(256)
+
+        
         self.de6_ecg = keras.Sequential([layers.Conv1DTranspose(128 , kernel_size = 1,strides = 1, padding = 'same'),
                                          layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),
                                          layers.Conv1DTranspose(64 , kernel_size = 1, strides = 1 , padding = 'same'),
                                          IncBlock(64,64)])
         
+        self.attn10 = AttentionBlock(64)
+
         self.de7_ecg = keras.Sequential([layers.Conv1DTranspose(8 , kernel_size = 1, strides = 1 , padding = 'same'),
                                         layers.BatchNormalization(axis = -1),
                                         layers.LeakyReLU(alpha = 0.2),
                                         layers.Conv1DTranspose(4 , kernel_size = 1, strides = 1 , padding = 'same'),
                                         IncBlock(4,4)])
         
+        self.attn11 = AttentionBlock(4)
+
         self.de8_ecg = keras.Sequential([layers.Conv1DTranspose(1 , kernel_size = 1 , strides = 1 , padding = 'same'),
                                          layers.LeakyReLU(alpha = 0.2)])
         
@@ -933,16 +949,19 @@ class BRUnet_raw_multi(tf.keras.Model):
         attn8 = self.attn8(d4_ecg , e4)
         cat_ecg = layers.concatenate([d4_ecg,attn8])
         d5_ecg = self.de5_ecg(cat_ecg)
-        d6_ecg = self.de6_ecg(d5_ecg)
-        d7_ecg = self.de7_ecg(d6_ecg)
-        d8_ecg = self.de8_ecg(d7_ecg)
+        attn9 = self.attn9(d5_ecg)
+        d6_ecg = self.de6_ecg(attn9)
+        attn10 = self.attn10(d6_ecg)
+        d7_ecg = self.de7_ecg(attn10)
+        attn11 = self.attn11(d7_ecg)
+        d8_ecg = self.de8_ecg(attn11)
         d9_ecg = self.de9_ecg(d8_ecg)
         #d10_ecg = self.ev2(d9_ecg)
 
         out_4 = tf.expand_dims(out_4 , axis = 1)
         #out_5 = tf.expand_dims(out_5 , axis = 1)
 
-        return d9_ecg, out_4, attn1,attn2,attn3,attn4,attn5,attn6,attn7,attn8
+        return d9_ecg, out_4, attn1,attn2,attn3,attn4,attn5,attn6,attn7,attn8,attn9,attn10,attn11
 
 
 
