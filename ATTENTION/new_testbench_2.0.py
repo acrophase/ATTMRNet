@@ -29,7 +29,7 @@ from rr_extration import *
 from sklearn.preprocessing import MinMaxScaler
 import re
 import pickle as pkl
-from tf_model import *
+from tf_model_new import *
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import Huber
@@ -140,7 +140,7 @@ for item in config_list:
         model_input_shape = (128,3)
         model  = BRUnet(model_input_shape)
         #optimizer = Adam(learning_rate = lr)
-        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ATTENTION/SAVED_MODELS_WITH_ATT'
+        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ATTENTION/WITH_SUB_SAMPLING'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -169,7 +169,7 @@ for item in config_list:
                 with tf.GradientTape() as tape:
                     #import pdb;pdb.set_trace()
                     #print(tf.math.reduce_mean(x_batch_train))
-                    output,_,_,_,_,_ = model(x_batch_train , training = True)
+                    output = model(x_batch_train , training = True)
                     #print(tf.math.reduce_mean(output))
                     loss_value = loss_fn(y_batch_train , output)
                     train_loss_list.append(loss_value)
@@ -189,7 +189,7 @@ for item in config_list:
             for step , (x_batch_test,y_batch_test) in enumerate(test_dataset):
                 #import pdb;pdb.set_trace()
                 #print(tf.math.reduce_mean(x_batch_test))
-                test_output,_,_,_,_,_ = model(x_batch_test , training = False)
+                test_output = model(x_batch_test , training = False)
                 #print(tf.math.reduce_mean(test_output))
                 test_loss_val = loss_fn(y_batch_test ,test_output)
                 test_loss(test_loss_val)
@@ -200,7 +200,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+str(1e-2)+'_'+str(1e-4)+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
             #print(test_loss.result())
             train_loss.reset_states()
@@ -216,7 +216,7 @@ for item in config_list:
         model_input_shape = (128,3)
         model  = BRUnet_Multi_resp(model_input_shape)
         loss_fn = Huber()
-        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ATTENTION/SAVED_MODELS_WITH_ATT'
+        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ATTENTION/WITH_SUB_SAMPLING'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)        
@@ -242,7 +242,7 @@ for item in config_list:
 
             for step, (x_batch_train , y_batch_train, x_batch_train_ref_rr) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
-                    output, out_rr,_,_,_,_,_,_,_,_,_ = model(x_batch_train , training = True)
+                    output, out_rr = model(x_batch_train , training = True)
                     loss_value = loss_fn(y_batch_train , output)
                     loss_value_rr = loss_fn(x_batch_train_ref_rr, out_rr)
                     net_loss_value = loss_value + loss_value_rr
@@ -264,7 +264,7 @@ for item in config_list:
             best_loss = 100000
 
             for step , (x_batch_test,y_batch_test,x_batch_test_ref_rr) in enumerate(test_dataset):
-                test_output,test_out_rr,_,_,_,_,_,_,_,_,_ = model(x_batch_test)
+                test_output,test_out_rr = model(x_batch_test)
                 test_loss_resp = loss_fn(y_batch_test , test_output)
                 test_loss_rr = loss_fn(x_batch_test_ref_rr , test_out_rr)
                 test_loss_val = test_loss_resp + test_loss_rr
@@ -276,7 +276,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-3)+'_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+str(1e-2)+'_'+str(1e-5)+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
             print(test_loss.result())
             train_loss.reset_states()
@@ -292,7 +292,7 @@ for item in config_list:
         model_input_shape = (128,3)
         model  = BRUnet_Encoder(model_input_shape)
         loss_fn = Huber()
-        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ATTENTION/SAVED_MODELS_WITH_ATT'
+        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ATTENTION/WITH_SUB_SAMPLING'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -318,7 +318,7 @@ for item in config_list:
 
             for step, (x_batch_train , x_batch_train_ref_rr) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
-                    output,_,_,_,_ = model(x_batch_train , training = True)
+                    output = model(x_batch_train , training = True)
                     loss_value = loss_fn(x_batch_train_ref_rr , output)
                     train_loss_list.append(loss_value)
                 grads = tape.gradient(loss_value, model.trainable_weights)
@@ -336,7 +336,7 @@ for item in config_list:
             best_loss = 100000
 
             for step , (x_batch_test,x_batch_test_ref_rr) in enumerate(test_dataset):
-                test_output,_,_,_,_ = model(x_batch_test)
+                test_output = model(x_batch_test)
                 test_loss_val = loss_fn(x_batch_test_ref_rr , test_output)
                 test_loss(test_loss_val)
                 test_loss_list.append(test_loss_val)
@@ -345,7 +345,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+str(1e-2)+'_'+str(1e-5)+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss)) 
             train_loss.reset_states()
             test_loss.reset_states()
@@ -353,16 +353,16 @@ for item in config_list:
     if item == "confe":
         def scheduler (epoch):
             if epoch <=20:
-                lr = 1e-3
+                lr = 1e-2
             else:
-                lr = 1e-3
+                lr = 1e-5
             return lr
         #lr = 1e-3
         model_input_shape = (2048,3)
         model  = BRUnet_raw(model_input_shape)
         loss_fn = Huber()
         #optimizer = Adam(learning_rate = lr)
-        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ATTENTION/SAVED_MODELS_WITH_ATT'
+        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ATTENTION/WITH_SUB_SAMPLING'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -386,7 +386,7 @@ for item in config_list:
             optimizer = Adam(learning_rate = scheduler(epoch))
             for step, (x_batch_train_raw , y_batch_train) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
-                    output,_,_,_,_,_,_,_ = model(x_batch_train_raw , training = True)
+                    output = model(x_batch_train_raw , training = True)
                     loss_value = loss_fn(y_batch_train , output)
                     train_loss_list.append(loss_value)
                 grads = tape.gradient(loss_value, model.trainable_weights)
@@ -403,7 +403,7 @@ for item in config_list:
             test_loss_list = []
             best_loss = 100000
             for step , (x_batch_test_raw,y_batch_test) in enumerate(test_dataset):
-                test_output,_,_,_,_,_,_,_= model(x_batch_test_raw)
+                test_output= model(x_batch_test_raw)
                 test_loss_val = loss_fn(y_batch_test , test_output)
                 test_loss(test_loss_val)
                 test_loss_list.append(test_loss_val)
@@ -413,7 +413,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_2'+str(1e-3)+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+str(1e-3)+'_'+str(1e-5)+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss)) 
             train_loss.reset_states()
             test_loss.reset_states()
@@ -428,7 +428,7 @@ for item in config_list:
         model_input_shape = (2048,3)
         model  = BRUnet_raw_encoder(model_input_shape)
         loss_fn = Huber()
-        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ATTENTION/SAVED_MODELS_WITH_ATT'
+        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ATTENTION/WITH_SUB_SAMPLING'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)
@@ -482,7 +482,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-4)+'_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-2)+'_'+str(1e-5)+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss)) 
             train_loss.reset_states()
             test_loss.reset_states()
@@ -490,14 +490,14 @@ for item in config_list:
     if item == "conff":
         def scheduler (epoch):
             if epoch <=20:
-                lr = 1e-4
+                lr = 1e-2
             else:
                 lr = 1e-5
             return lr
         model_input_shape = (2048,3)
         model  = BRUnet_raw_multi(model_input_shape)
         loss_fn = Huber()
-        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ATTENTION/SAVED_MODELS_WITH_ATT'
+        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ATTENTION/WITH_SUB_SAMPLING'
         results_path = os.path.join(save_path , item.lower())
         if not(os.path.isdir(results_path)):
             os.mkdir(results_path)        
@@ -522,7 +522,7 @@ for item in config_list:
             optimizer = Adam(learning_rate = scheduler(epoch))
             for step, (x_batch_train_raw , y_batch_train, x_batch_train_ref_rr) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
-                    output, out_rr,_,_,_,_,_,_,_,_,_,_,_ = model(x_batch_train_raw , training = True)
+                    output, out_rr= model(x_batch_train_raw , training = True)
                     loss_value = loss_fn(y_batch_train , output)
                     loss_value_rr = loss_fn(x_batch_train_ref_rr, out_rr)
                     net_loss_value = loss_value + loss_value_rr
@@ -543,7 +543,7 @@ for item in config_list:
             best_loss = 100000
 
             for step , (x_batch_test_raw , y_batch_test , x_batch_test_ref_rr) in enumerate(test_dataset):
-                test_output,test_out_rr,_,_,_,_,_,_,_,_,_,_,_  = model(x_batch_test_raw , training = False)
+                test_output,test_out_rr  = model(x_batch_test_raw , training = False)
                 test_loss_resp = loss_fn(y_batch_test , test_output)
                 test_loss_rr = loss_fn(x_batch_test_ref_rr , test_out_rr)
                 test_loss_val = test_loss_resp + test_loss_rr
@@ -555,7 +555,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_5'+str(1e-5)+'_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-2)+'_'+str(1e-5)+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
             #print(test_loss.result())
             train_loss.reset_states()
