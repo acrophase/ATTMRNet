@@ -126,7 +126,7 @@ x_test_raw_sig = tensor_raw_data[tf.convert_to_tensor(~(training_ids.values))]
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-config_list = ["conff"]
+config_list = ["confb"]
 for item in config_list:
     if item == "confc":
         def scheduler (epoch):
@@ -276,7 +276,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+str(1e-2)+'_'+str(1e-5)+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-2)+'_'+str(1e-5)+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
             print(test_loss.result())
             train_loss.reset_states()
@@ -345,7 +345,7 @@ for item in config_list:
             mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
             if mean_loss < best_loss:
                 best_loss = mean_loss
-                model.save_weights(os.path.join(results_path, 'best_model_'+str(1e-2)+'_'+str(1e-5)+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_2'+str(1e-2)+'_'+str(1e-5)+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss)) 
             train_loss.reset_states()
             test_loss.reset_states()
@@ -454,7 +454,7 @@ for item in config_list:
             optimizer = Adam(learning_rate = lr) 
             for step, (x_batch_train_raw , x_batch_train_ref_rr) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
-                    output,_,_,_,_ = model(x_batch_train_raw , training = True)
+                    output = model(x_batch_train_raw , training = True)
                     loss_value = loss_fn(x_batch_train_ref_rr , output)
                     train_loss_list.append(loss_value)
                 grads = tape.gradient(loss_value, model.trainable_weights)
@@ -472,7 +472,7 @@ for item in config_list:
             best_loss = 100000
 
             for step , (x_batch_test_raw, x_batch_test_ref_rr) in enumerate(test_dataset):
-                test_output,_,_,_,_ = model(x_batch_test_raw)
+                test_output = model(x_batch_test_raw)
                 test_loss_val = loss_fn(x_batch_test_ref_rr , test_output)
                 test_loss(test_loss_val)
                 test_loss_list.append(test_loss_val)
