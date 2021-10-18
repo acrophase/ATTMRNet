@@ -73,53 +73,6 @@ class AttentionBlock(tf.keras.Model):
             out = x * psi
             return out
 
-
-#class AttentionBlock(tf.keras.Model):
-#    def __init__(self,g_shape,x_shape):
-#        super(AttentionBlock , self).__init__()
-
-#        self.W_g = keras.Sequential([layers.Conv1D(g_shape,kernel_size = 1,strides = 1,padding = 'same'),
-#                                       layers.BatchNormalization(axis = -1)])
-
-#        self.W_x = keras.Sequential([layers.Conv1D(x_shape,kernel_size = 1,strides = 1,padding = 'same'),
-#                                       layers.BatchNormalization(axis = -1)])
-
-#        self.psi = keras.Sequential([layers.Conv1D(1,kernel_size = 1,strides = 1,padding = 'same'),
-#                                        layers.BatchNormalization(axis = -1),
-#                                        layers.Activation(activation='sigmoid')])
-
-#        self.relu = layers.ReLU()
-    
-#    def call (self,g,x):
-        #import pdb;pdb.set_trace()
-#        g1 = self.W_g(g)
-#        x1 = self.W_x(x)
-#        psi = self.relu(g1 + x1)
-#        psi = self.psi(psi)
-#        out = x * psi
-#        return out
-
-#class AttentionBlock_new(tf.keras.Model):
-#    def __init__(self,x_shape):
-#        super(AttentionBlock_new , self).__init__()
-
-#        self.W_x = keras.Sequential([layers.Conv1D(x_shape,kernel_size = 1,strides = 1,padding = 'same'),
-#                                       layers.BatchNormalization(axis = -1)])
-
-#        self.psi = keras.Sequential([layers.Conv1D(1,kernel_size = 1,strides = 1,padding = 'same'),
-#                                        layers.BatchNormalization(axis = -1),
-#                                        layers.Activation(activation='sigmoid')])
-
-#        self.relu = layers.ReLU()
-    
-#    def call (self,x):
-#        #import pdb;pdb.set_trace()
-#        x1 = self.W_x(x)
-#        psi = self.relu(x1)
-#        psi = self.psi(psi)
-#        out = x * psi
-#        return out
-
 class IncBlock(tf.keras.Model):
     def __init__(self, in_channels, out_channels, size = 15, strides = 1):
         super(IncBlock, self).__init__()

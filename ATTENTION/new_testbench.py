@@ -135,7 +135,6 @@ for item in config_list:
             else:
                 lr = 1e-4
             return lr
-        #lr = 1e-4
         loss_fn = Huber()
         model_input_shape = (128,3)
         model  = BRUnet(model_input_shape)
@@ -167,8 +166,6 @@ for item in config_list:
             optimizer = Adam(learning_rate = scheduler(epoch))
             for step, (x_batch_train , y_batch_train) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
-                    #import pdb;pdb.set_trace()
-                    #print(tf.math.reduce_mean(x_batch_train))
                     output,_,_,_,_,_ = model(x_batch_train , training = True)
                     #print(tf.math.reduce_mean(output))
                     loss_value = loss_fn(y_batch_train , output)
