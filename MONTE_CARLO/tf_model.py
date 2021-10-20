@@ -5,7 +5,7 @@ import evidential_deep_learning as edl
 from tensorflow.keras.models import Model
 from tensorflow.keras.regularizers import l2
 
-lam = 0.001
+lam = 0.0001
 class Conv1DTranspose(tf.keras.Model):
     def __init__(self, filters, kernel_size, strides=2, padding='same'):
         """
