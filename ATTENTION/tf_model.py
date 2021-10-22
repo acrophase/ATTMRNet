@@ -73,53 +73,6 @@ class AttentionBlock(tf.keras.Model):
             out = x * psi
             return out
 
-
-#class AttentionBlock(tf.keras.Model):
-#    def __init__(self,g_shape,x_shape):
-#        super(AttentionBlock , self).__init__()
-
-#        self.W_g = keras.Sequential([layers.Conv1D(g_shape,kernel_size = 1,strides = 1,padding = 'same'),
-#                                       layers.BatchNormalization(axis = -1)])
-
-#        self.W_x = keras.Sequential([layers.Conv1D(x_shape,kernel_size = 1,strides = 1,padding = 'same'),
-#                                       layers.BatchNormalization(axis = -1)])
-
-#        self.psi = keras.Sequential([layers.Conv1D(1,kernel_size = 1,strides = 1,padding = 'same'),
-#                                        layers.BatchNormalization(axis = -1),
-#                                        layers.Activation(activation='sigmoid')])
-
-#        self.relu = layers.ReLU()
-    
-#    def call (self,g,x):
-        #import pdb;pdb.set_trace()
-#        g1 = self.W_g(g)
-#        x1 = self.W_x(x)
-#        psi = self.relu(g1 + x1)
-#        psi = self.psi(psi)
-#        out = x * psi
-#        return out
-
-#class AttentionBlock_new(tf.keras.Model):
-#    def __init__(self,x_shape):
-#        super(AttentionBlock_new , self).__init__()
-
-#        self.W_x = keras.Sequential([layers.Conv1D(x_shape,kernel_size = 1,strides = 1,padding = 'same'),
-#                                       layers.BatchNormalization(axis = -1)])
-
-#        self.psi = keras.Sequential([layers.Conv1D(1,kernel_size = 1,strides = 1,padding = 'same'),
-#                                        layers.BatchNormalization(axis = -1),
-#                                        layers.Activation(activation='sigmoid')])
-
-#        self.relu = layers.ReLU()
-    
-#    def call (self,x):
-#        #import pdb;pdb.set_trace()
-#        x1 = self.W_x(x)
-#        psi = self.relu(x1)
-#        psi = self.psi(psi)
-#        out = x * psi
-#        return out
-
 class IncBlock(tf.keras.Model):
     def __init__(self, in_channels, out_channels, size = 15, strides = 1):
         super(IncBlock, self).__init__()
@@ -158,9 +111,9 @@ class IncBlock(tf.keras.Model):
         concat+=res
         return self.relu(concat)
          
-class BRUnet(tf.keras.Model):
+class BRUnet_ATT(tf.keras.Model):
     def __init__(self, in_channels):
-        super(BRUnet,self).__init__()
+        super(BRUnet_ATT,self).__init__()
         #in_channels = shape[1]
         
         self.en1 = keras.Sequential([layers.Conv1D(32,kernel_size = 3, padding = 'same',input_shape = in_channels),
@@ -291,9 +244,9 @@ class BRUnet(tf.keras.Model):
         return  d9_ecg,attn1,attn2,attn3,attn4,attn5
 
 
-class BRUnet_Multi_resp(tf.keras.Model):
+class BRUnet_Multi_resp_ATT(tf.keras.Model):
     def __init__(self, in_channels):
-        super(BRUnet_Multi_resp,self).__init__()
+        super(BRUnet_Multi_resp_ATT,self).__init__()
 
         self.en1 = keras.Sequential([layers.Conv1D(32,kernel_size = 3, padding = 'same',input_shape = in_channels),
                                     layers.BatchNormalization(axis = -1),
@@ -456,9 +409,9 @@ class BRUnet_Multi_resp(tf.keras.Model):
 
         return d9_ecg,out_4,attn1,attn2,attn3,attn4,attn5,attn6,attn7,attn8,attn9
 
-class BRUnet_Encoder(tf.keras.Model):
+class BRUnet_Encoder_ATT(tf.keras.Model):
     def __init__(self,in_channels):
-        super(BRUnet_Encoder, self).__init__()
+        super(BRUnet_Encoder_ATT, self).__init__()
 
         self.en1 = keras.Sequential([layers.Conv1D(32,kernel_size = 3, padding = 'same', input_shape = in_channels),
                                     layers.BatchNormalization(axis = -1),
@@ -539,9 +492,9 @@ class BRUnet_Encoder(tf.keras.Model):
         #out_5 = self.ev1(out_4)
         return out_4,attn1,attn2,attn3,attn4
 
-class BRUnet_raw(tf.keras.Model):
+class BRUnet_raw_ATT(tf.keras.Model):
     def __init__(self,in_channels):
-        super(BRUnet_raw, self).__init__()
+        super(BRUnet_raw_ATT, self).__init__()
 
         self.en1 = keras.Sequential([layers.Conv1D(32 , kernel_size = 3 , padding = 'same',input_shape = in_channels),
                                     layers.BatchNormalization(axis = -1),
@@ -689,9 +642,9 @@ class BRUnet_raw(tf.keras.Model):
         
         return d9_ecg,attn1,attn2,attn3,attn4,attn5,attn6,attn7
 
-class BRUnet_raw_encoder(tf.keras.Model):
+class BRUnet_raw_encoder_ATT(tf.keras.Model):
     def __init__(self,in_channels):
-        super(BRUnet_raw_encoder,self).__init__()
+        super(BRUnet_raw_encoder_ATT,self).__init__()
 
         self.en1 = keras.Sequential([layers.Conv1D(32 , kernel_size = 3, padding = 'same',input_shape = in_channels),
                                      layers.BatchNormalization(axis = -1),
@@ -772,9 +725,9 @@ class BRUnet_raw_encoder(tf.keras.Model):
         #out_5 = self.ev1(out_4)
         return tf.expand_dims(out_4 , axis = 1),attn1,attn2,attn3,attn4
 
-class BRUnet_raw_multi(tf.keras.Model):
+class BRUnet_raw_multi_ATT(tf.keras.Model):
     def __init__(self, in_channels):
-        super(BRUnet_raw_multi , self).__init__()
+        super(BRUnet_raw_multi_ATT , self).__init__()
 
         self.en1 = keras.Sequential([layers.Conv1D(32 , kernel_size = 3 , padding = 'same',input_shape = in_channels),
                                     layers.BatchNormalization(axis = -1),

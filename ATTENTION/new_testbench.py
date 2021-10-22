@@ -40,7 +40,7 @@ import sys
 
 srate = 700
 win_length = 32*srate
-num_epochs = 1000
+num_epochs = 100
 #config = input("Enter the configuration :")
 data_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ppg_dalia_data'
 data = extract_data(data_path , srate , win_length)
@@ -126,18 +126,18 @@ x_test_raw_sig = tensor_raw_data[tf.convert_to_tensor(~(training_ids.values))]
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-config_list = ["confa","confb","confc","confd","confe","conff"]
+config_list = ["confe"]
 for item in config_list:
     if item == "confc":
         def scheduler (epoch):
-            if epoch <=200:
+            if epoch <=20:
                 lr = 1e-2
             else:
                 lr = 1e-5
             return lr
         loss_fn = Huber()
         model_input_shape = (128,3)
-        model  = BRUnet(model_input_shape)
+        model  = BRUnet_ATT(model_input_shape)
         #optimizer = Adam(learning_rate = lr)
         save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ATTENTION/SAVED_MODELS_WITH_ATT'
         results_path = os.path.join(save_path , item.lower())
@@ -198,7 +198,7 @@ for item in config_list:
             if mean_loss < best_loss:
                 best_loss = mean_loss
                 #model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+'.h5'))
-                model.save_weights(os.path.join(results_path, 'best_model_'+str(1e-2)+'_'+str(1e-5)+'_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-2)+'_'+str(1e-5)+'_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
             #print(test_loss.result())
             train_loss.reset_states()
@@ -206,13 +206,13 @@ for item in config_list:
         
     if item == "confd":
         def scheduler (epoch):
-            if epoch <=200:
+            if epoch <=20:
                 lr = 1e-2
             else:
                 lr = 1e-5
             return lr
         model_input_shape = (128,3)
-        model  = BRUnet_Multi_resp(model_input_shape)
+        model  = BRUnet_Multi_resp_ATT(model_input_shape)
         loss_fn = Huber()
         save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ATTENTION/SAVED_MODELS_WITH_ATT'
         results_path = os.path.join(save_path , item.lower())
@@ -274,7 +274,7 @@ for item in config_list:
             if mean_loss < best_loss:
                 best_loss = mean_loss
                 #model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-3)+'_'+str(num_epochs)+'.h5'))
-                model.save_weights(os.path.join(results_path, 'best_model_'+str(1e-2)+'_'+str(1e-5)+'_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-2)+'_'+str(1e-5)+'_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
             print(test_loss.result())
             train_loss.reset_states()
@@ -282,13 +282,13 @@ for item in config_list:
 
     if item == "confb":
         def scheduler (epoch):
-            if epoch <=200:
+            if epoch <=20:
                 lr = 1e-2
             else:
                 lr = 1e-5
             return lr
         model_input_shape = (128,3)
-        model  = BRUnet_Encoder(model_input_shape)
+        model  = BRUnet_Encoder_ATT(model_input_shape)
         loss_fn = Huber()
         save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ATTENTION/SAVED_MODELS_WITH_ATT'
         results_path = os.path.join(save_path , item.lower())
@@ -344,21 +344,21 @@ for item in config_list:
             if mean_loss < best_loss:
                 best_loss = mean_loss
                 #model.save_weights(os.path.join(results_path, 'best_model_'+str(num_epochs)+'.h5'))
-                model.save_weights(os.path.join(results_path, 'best_model_'+str(1e-2)+'_'+str(1e-5)+'_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-2)+'_'+str(1e-5)+'_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss)) 
             train_loss.reset_states()
             test_loss.reset_states()
     
     if item == "confe":
         def scheduler (epoch):
-            if epoch <=200:
-                lr = 1e-4
+            if epoch <=20:
+                lr = 1e-3
             else:
-                lr = 1e-5
+                lr = 1e-4
             return lr
         #lr = 1e-3
         model_input_shape = (2048,3)
-        model  = BRUnet_raw(model_input_shape)
+        model  = BRUnet_raw_ATT(model_input_shape)
         loss_fn = Huber()
         #optimizer = Adam(learning_rate = lr)
         save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ATTENTION/SAVED_MODELS_WITH_ATT'
@@ -413,20 +413,20 @@ for item in config_list:
             if mean_loss < best_loss:
                 best_loss = mean_loss
                 #model.save_weights(os.path.join(results_path, 'best_model_2'+str(1e-3)+str(num_epochs)+'.h5'))
-                model.save_weights(os.path.join(results_path, 'best_model_'+str(1e-4)+'_'+str(1e-5)+'_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_'+str(1e-3)+'_'+str(1e-4)+'_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss)) 
             train_loss.reset_states()
             test_loss.reset_states()
     
     if item == 'confa':
         def scheduler (epoch):
-            if epoch <=200:
+            if epoch <=20:
                 lr = 1e-2
             else:
                 lr = 1e-5
             return lr
         model_input_shape = (2048,3)
-        model  = BRUnet_raw_encoder(model_input_shape)
+        model  = BRUnet_raw_encoder_ATT(model_input_shape)
         loss_fn = Huber()
         save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ATTENTION/SAVED_MODELS_WITH_ATT'
         results_path = os.path.join(save_path , item.lower())
@@ -483,20 +483,20 @@ for item in config_list:
             if mean_loss < best_loss:
                 best_loss = mean_loss
                 #model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-4)+'_'+str(num_epochs)+'.h5'))
-                model.save_weights(os.path.join(results_path, 'best_model_'+str(1e-2)+'_'+str(1e-5)+'_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-2)+'_'+str(1e-5)+'_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss)) 
             train_loss.reset_states()
             test_loss.reset_states()
 
     if item == "conff":
         def scheduler (epoch):
-            if epoch <=200:
+            if epoch <=20:
                 lr = 1e-4
             else:
                 lr = 1e-5
             return lr
         model_input_shape = (2048,3)
-        model  = BRUnet_raw_multi(model_input_shape)
+        model  = BRUnet_raw_multi_ATT(model_input_shape)
         loss_fn = Huber()
         save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ATTENTION/SAVED_MODELS_WITH_ATT'
         results_path = os.path.join(save_path , item.lower())
@@ -557,7 +557,7 @@ for item in config_list:
             if mean_loss < best_loss:
                 best_loss = mean_loss
                 #model.save_weights(os.path.join(results_path, 'best_model_5'+str(1e-5)+'_'+str(num_epochs)+'.h5'))
-                model.save_weights(os.path.join(results_path, 'best_model_'+str(1e-4)+'_'+str(1e-5)+'_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-4)+'_'+str(1e-5)+'_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
             #print(test_loss.result())
             train_loss.reset_states()
