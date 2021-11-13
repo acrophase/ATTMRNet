@@ -642,9 +642,9 @@ class BRUnet_raw_ATT_EVI(tf.keras.Model):
         
         return d10_ecg,attn1,attn2,attn3,attn4,attn5,attn6,attn7
 
-class BRUnet_raw_encoder_ATT(tf.keras.Model):
+class BRUnet_raw_encoder_ATT_EVI(tf.keras.Model):
     def __init__(self,in_channels):
-        super(BRUnet_raw_encoder_ATT,self).__init__()
+        super(BRUnet_raw_encoder_ATT_EVI,self).__init__()
 
         self.en1 = keras.Sequential([layers.Conv1D(32 , kernel_size = 3, padding = 'same',input_shape = in_channels),
                                      layers.BatchNormalization(axis = -1),
@@ -704,7 +704,7 @@ class BRUnet_raw_encoder_ATT(tf.keras.Model):
         self.attn4 = AttentionBlock(4)
 
         self.fc = layers.Dense(1)
-        #self.ev1 = edl.layers.DenseNormalGamma(1)
+        self.ev1 = edl.layers.DenseNormalGamma(1)
     
     def call(self , x):
         #import pdb;pdb.set_trace()
@@ -722,12 +722,12 @@ class BRUnet_raw_encoder_ATT(tf.keras.Model):
         out_3 =  self.en9_p(attn3)
         attn4 = self.attn4(out_3)
         out_4 = self.fc(tf.reshape(attn4 , (-1 , out_3.shape[1]*out_3.shape[2])))
-        #out_5 = self.ev1(out_4)
-        return tf.expand_dims(out_4 , axis = 1),attn1,attn2,attn3,attn4
+        out_5 = self.ev1(out_4)
+        return tf.expand_dims(out_5 , axis = 1),attn1,attn2,attn3,attn4
 
-class BRUnet_raw_multi_ATT(tf.keras.Model):
+class BRUnet_raw_multi_ATT_EVI(tf.keras.Model):
     def __init__(self, in_channels):
-        super(BRUnet_raw_multi_ATT , self).__init__()
+        super(BRUnet_raw_multi_ATT_EVI , self).__init__()
 
         self.en1 = keras.Sequential([layers.Conv1D(32 , kernel_size = 3 , padding = 'same',input_shape = in_channels),
                                     layers.BatchNormalization(axis = -1),
@@ -802,7 +802,7 @@ class BRUnet_raw_multi_ATT(tf.keras.Model):
 
         self.fc = layers.Dense(1)
 
-        #self.ev1 = edl.layers.DenseNormalGamma(1)
+        self.ev1 = edl.layers.DenseNormalGamma(1)
 
         self.de1_ecg = keras.Sequential([layers.Conv1D(512 , kernel_size = 3 , padding = 'same'),
                                         layers.BatchNormalization(axis = -1),
@@ -868,7 +868,7 @@ class BRUnet_raw_multi_ATT(tf.keras.Model):
         self.de9_ecg = keras.Sequential([layers.Conv1DTranspose(1 , kernel_size = 1 , strides = 1 , padding = 'same'),
                                          layers.LeakyReLU(alpha = 0.2)])
         
-        #self.ev2 = edl.layers.DenseNormalGamma(1)
+        self.ev2 = edl.layers.DenseNormalGamma(1)
     
     def call (self , x , training = False):
         
@@ -888,7 +888,7 @@ class BRUnet_raw_multi_ATT(tf.keras.Model):
         out_3 =  self.en9_p(attn3)
         attn4 = self.attn4(out_3)
         out_4 = self.fc(tf.reshape(attn4 , (-1 , out_3.shape[1]*out_3.shape[2])))
-        #out_5 = self.ev1(out_4)
+        out_5 = self.ev1(out_4)
         d1_ecg = self.de1_ecg(e8)
         attn5 = self.attn5(d1_ecg , e7)
         cat_ecg = layers.concatenate([d1_ecg,attn5])
@@ -909,12 +909,12 @@ class BRUnet_raw_multi_ATT(tf.keras.Model):
         attn11 = self.attn11(d7_ecg)
         d8_ecg = self.de8_ecg(attn11)
         d9_ecg = self.de9_ecg(d8_ecg)
-        #d10_ecg = self.ev2(d9_ecg)
+        d10_ecg = self.ev2(d9_ecg)
 
         out_4 = tf.expand_dims(out_4 , axis = 1)
-        #out_5 = tf.expand_dims(out_5 , axis = 1)
+        out_5 = tf.expand_dims(out_5 , axis = 1)
 
-        return d9_ecg, out_4, attn1,attn2,attn3,attn4,attn5,attn6,attn7,attn8,attn9,attn10,attn11
+        return d10_ecg, out_5, attn1,attn2,attn3,attn4,attn5,attn6,attn7,attn8,attn9,attn10,attn11
 
 
 
