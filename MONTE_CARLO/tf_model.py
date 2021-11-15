@@ -134,34 +134,42 @@ class BRUnet(tf.keras.Model):
                                      MonteCarloDropout(rate = 0.1),
                                      IncBlock(1024,1024)])
         
-        self.de1_ecg = keras.Sequential([Conv1DTranspose(512, kernel_size = 1,strides = 1),
+        self.de1_ecg = keras.Sequential([Conv1DTranspose(512, kernel_size = 1,strides = 1
+                                         ,kernel_regularizer=l2(lam),bias_regularizer=l2(lam)),
                                          layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),
                                          MonteCarloDropout(rate = 0.1),
                                          IncBlock(512,512)])
 
-        self.de2_ecg = keras.Sequential([Conv1DTranspose(512, kernel_size = 1,strides = 2),
+        self.de2_ecg = keras.Sequential([Conv1DTranspose(512, kernel_size = 1,strides = 2
+                                         ,kernel_regularizer=l2(lam),bias_regularizer=l2(lam)),
                                          layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),
                                          MonteCarloDropout(rate = 0.1),
-                                         Conv1DTranspose(256 , kernel_size = 1,strides = 1),
+                                         Conv1DTranspose(256 , kernel_size = 1,strides = 1
+                                         ,kernel_regularizer=l2(lam),bias_regularizer=l2(lam)),
                                          IncBlock(256,256)])
 
-        self.de3_ecg = keras.Sequential([layers.Conv1D(256, kernel_size = 1,strides = 1),  #kernel_size = 3
+        self.de3_ecg = keras.Sequential([layers.Conv1D(256, kernel_size = 1,strides = 1
+                                                 ,kernel_regularizer=l2(lam),bias_regularizer=l2(lam)),  #kernel_size = 3
                                          layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),
                                          MonteCarloDropout(rate = 0.1),
-                                         Conv1DTranspose(128 , kernel_size = 4, strides = 2, padding = 'same'), #kernel_size = 4 strides = 2
+                                         Conv1DTranspose(128 , kernel_size = 4, strides = 2, padding = 'same'
+                                         ,kernel_regularizer=l2(lam),bias_regularizer=l2(lam)), #kernel_size = 4 strides = 2
                                          IncBlock(128,128)])
 
-        self.de4_ecg = keras.Sequential([layers.Conv1D(128, kernel_size = 1,strides = 1), #kernel_size = 3
+        self.de4_ecg = keras.Sequential([layers.Conv1D(128, kernel_size = 1,strides = 1
+                                             ,kernel_regularizer=l2(lam),bias_regularizer=l2(lam)), #kernel_size = 3
                                          layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),
                                          MonteCarloDropout(rate = 0.1),
-                                         Conv1DTranspose(64 , kernel_size = 3,strides = 2),  #kernel_size = 3 strides = 2
+                                         Conv1DTranspose(64 , kernel_size = 3,strides = 2
+                                         ,kernel_regularizer=l2(lam),bias_regularizer=l2(lam)),  #kernel_size = 3 strides = 2
                                          IncBlock(64,64)])
 
-        self.de5_ecg = keras.Sequential([layers.Conv1D(64, kernel_size = 1,strides = 1,padding = 'same'), #kernel_size = 3
+        self.de5_ecg = keras.Sequential([layers.Conv1D(64, kernel_size = 1,strides = 1,padding = 'same'
+                                         ,kernel_regularizer=l2(lam),bias_regularizer=l2(lam)), #kernel_size = 3
                                          layers.BatchNormalization(axis = -1),   
                                          layers.LeakyReLU(alpha = 0.2),
                                          MonteCarloDropout(rate = 0.1),
