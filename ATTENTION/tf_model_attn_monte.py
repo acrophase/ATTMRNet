@@ -203,7 +203,7 @@ class BRUnet_ATT_MC(tf.keras.Model):
         
         self.attn2 = AttentionBlock(256, 256)
 
-        self.de3_ecg = keras.Sequential([layers.Conv1D(256, kernel_size = 1,strides = 1,
+        self.de3_ecg = keras.Sequential([layers.Conv1D(256, kernel_size = 1,strides = 1
                                          ,kernel_regularizer=l2(lam),bias_regularizer=l2(lam)),  #kernel_size = 3
                                          layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),
@@ -514,7 +514,7 @@ class BRUnet_Encoder_ATT_MC(tf.keras.Model):
     def __init__(self,in_channels):
         super(BRUnet_Encoder_ATT_MC, self).__init__()
 
-        self.en1 = keras.Sequential([layers.Conv1D(32,kernel_size = 3, padding = 'same', input_shape = in_channels,
+        self.en1 = keras.Sequential([layers.Conv1D(32,kernel_size = 3, padding = 'same', input_shape = in_channels
                                                 ,kernel_regularizer=l2(lam),bias_regularizer=l2(lam)),
                                     layers.BatchNormalization(axis = -1),
                                     layers.LeakyReLU(alpha = 0.2),
@@ -523,12 +523,12 @@ class BRUnet_Encoder_ATT_MC(tf.keras.Model):
                                     ,kernel_regularizer=l2(lam),bias_regularizer=l2(lam)),
                                     IncBlock(32,32)])
         
-        self.en2 = keras.Sequential([layers.Conv1D(64 , kernel_size = 3 , padding = 'same',
+        self.en2 = keras.Sequential([layers.Conv1D(64 , kernel_size = 3 , padding = 'same'
                                                     ,kernel_regularizer=l2(lam),bias_regularizer=l2(lam)),
                                       layers.BatchNormalization(axis = -1),
                                       layers.LeakyReLU(alpha = 0.2),
                                       MonteCarloDropout(rate = 0.1),
-                                      layers.Conv1D(64 , kernel_size = 5 , strides = 2, padding = 'same',
+                                      layers.Conv1D(64 , kernel_size = 5 , strides = 2, padding = 'same'
                                                     ,kernel_regularizer=l2(lam),bias_regularizer=l2(lam)),
                                       IncBlock(64,64)])
         
@@ -1052,7 +1052,7 @@ class BRUnet_raw_multi_ATT_MC(tf.keras.Model):
         
         self.attn6 = AttentionBlock(512,512)
 
-        self.de3_ecg = keras.Sequential([layers.Conv1D(256 , kernel_size = 3 , padding = 'same',
+        self.de3_ecg = keras.Sequential([layers.Conv1D(256 , kernel_size = 3 , padding = 'same'
                                                            ,kernel_regularizer=l2(lam),bias_regularizer=l2(lam)),
                                          layers.BatchNormalization(axis = -1),
                                          layers.LeakyReLU(alpha = 0.2),

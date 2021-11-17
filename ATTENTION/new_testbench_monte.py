@@ -485,9 +485,9 @@ for item in config_list:
     if item == "conff":
         def scheduler (epoch):
             if epoch <=20:
-                lr = 1e-4
+                lr = 1e-3
             else:
-                lr = 1e-5
+                lr = 1e-4
             return lr
         model_input_shape = (2048,3)
         model  = BRUnet_raw_multi_ATT_MC(model_input_shape)
@@ -551,7 +551,7 @@ for item in config_list:
             if mean_loss < best_loss:
                 best_loss = mean_loss
                 #model.save_weights(os.path.join(results_path, 'best_model_5'+str(1e-5)+'_'+str(num_epochs)+'.h5'))
-                model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-4)+'_'+str(1e-5)+'_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-3)+'_'+str(1e-4)+'_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
             #print(test_loss.result())
             train_loss.reset_states()
