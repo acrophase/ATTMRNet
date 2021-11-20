@@ -23,7 +23,7 @@ from tensorflow.keras.regularizers import l2
 #    def call (self,x):
 #        return self.obj(x)
 
-lam = 0.0001
+lam = None#0.0001
 class AttentionBlock(tf.keras.Model):
     def __init__(self,*args):
         super(AttentionBlock,self).__init__()
