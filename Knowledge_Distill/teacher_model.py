@@ -280,6 +280,7 @@ class BRUnet_Multi_resp_ATT_MC(tf.keras.Model):
     
     def call(self,x, training = False):
         
+        #import pdb;pdb.set_trace()
         e1 = self.en1(x)
         e2 = self.en2(e1)
         e3 = self.en3(e2)

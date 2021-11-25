@@ -134,9 +134,9 @@ def scheduler (epoch):
         lr = 1e-5
     return lr
 model_input_shape = (128,3)
-model  = BRUnet_Multi_resp_student(model_input_shape)
+model  = BRUnet_Multi_resp_student_2(model_input_shape)
 loss_fn = Huber()
-save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/Knowledge_Distill/SAVED_STUDENT_MODEL'
+save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/Knowledge_Distill/SAVED_STUDENT_MODEL_2'
 results_path = os.path.join(save_path , "TEACHER_MODEL")
 if not(os.path.isdir(results_path)):
     os.mkdir(results_path)        
@@ -196,7 +196,7 @@ for epoch in tqdm.tqdm(range(num_epochs)):
     if mean_loss < best_loss:
         best_loss = mean_loss
             #model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-3)+'_'+str(num_epochs)+'.h5'))
-        model.save_weights(os.path.join(results_path, 'best_model_2'+str(1e-2)+'_'+str(1e-5)+'_'+str(num_epochs)+'.h5'))
+        model.save_weights(os.path.join(results_path, 'best_model_3'+str(1e-2)+'_'+str(1e-5)+'_'+str(num_epochs)+'.h5'))
     print("validation loss -- {}".format(mean_loss))
     print(test_loss.result())
     train_loss.reset_states()
