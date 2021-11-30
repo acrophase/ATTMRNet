@@ -193,10 +193,10 @@ for epoch in tqdm.tqdm(range(num_epochs)):
 
     for step , (x_batch_test,y_batch_test,x_batch_test_ref_rr) in enumerate(test_dataset):
         test_out_st,test_out_rr_st,test_e6_st,test_at1_st,test_at2_st,test_at4_st,test_at5_st,\
-                                               test_at6_st,test_at7_st= model_student(x_batch_train , training = True)
+                                               test_at6_st,test_at7_st= model_student(x_batch_test , training = True)
         
         test_out_tea, test_out_rr_tea,test_e6_tea,test_at1_tea,test_at2_tea,test_at3_tea,test_at4_tea,test_at5_tea,\
-        test_at6_tea,test_at7_tea,test_at8_tea,test_at9_tea = model_teacher(x_batch_train , training = True)
+        test_at6_tea,test_at7_tea,test_at8_tea,test_at9_tea = model_teacher(x_batch_test , training = True)
         #test_loss_resp = loss_fn(y_batch_test , test_output)
         #test_loss_rr = loss_fn(x_batch_test_ref_rr , test_out_rr)
         test_loss_1 = loss_fn(test_out_st , test_out_tea)
@@ -215,7 +215,7 @@ for epoch in tqdm.tqdm(range(num_epochs)):
     if mean_loss < best_loss:
         best_loss = mean_loss
             #model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-3)+'_'+str(num_epochs)+'.h5'))
-        model_student.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-2)+'_'+str(1e-5)+'_'+str(num_epochs)+'.h5'))
+        model_student.save_weights(os.path.join(results_path, 'best_model_3'+str(1e-2)+'_'+str(1e-5)+'_'+str(num_epochs)+'.h5'))
     print("validation loss -- {}".format(mean_loss))
     print(test_loss.result())
     train_loss.reset_states()
