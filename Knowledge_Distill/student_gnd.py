@@ -127,7 +127,7 @@ x_test_raw_sig = tensor_raw_data[tf.convert_to_tensor(~(training_ids.values))]
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-alpha = 0.92
+alpha = 0.94
 def scheduler (epoch):
     if epoch <=20:
         lr = 1e-2
