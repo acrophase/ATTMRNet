@@ -11,7 +11,7 @@ from scipy import signal
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--data_path", type=str, help="Path to data", default = 'C:/Users/ee19s/Desktop/BR_Uncertainty/FINAL_JOURNAL_DATA')
+parser.add_argument("--data_path", type=str, help="Path to data", default = 'C:/Users/ee19s/Desktop/BRUCE_DATA_SET/FINAL_JOURNAL_DATA')
 parser.add_argument("--srate", type=int, help="sampling rate", default=256)
 parser.add_argument("--win_len", type=int, help="win length in secs", default=32)
 args = parser.parse_args()
