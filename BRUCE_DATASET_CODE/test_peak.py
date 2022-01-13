@@ -99,3 +99,8 @@ print(input_data.shape)
 print(output_data.shape)
 print(raw_data.shape)
 print(annotation.shape)
+
+plt.plot(raw_data[1028][2])
+plt.grid(True)
+plt.show()
+
