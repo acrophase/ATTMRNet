@@ -95,9 +95,10 @@ with open('output','rb') as f:
 with open('input','rb') as f:
     input_data = pkl.load(f)
 
-with open('raw_signal_2.pkl','rb') as f:
+with open('raw_signal.pkl','rb') as f:
     raw_data = pkl.load(f)
-
+print(raw_data)
+sys.exit()
 input_data = np.transpose(input_data, (0,2,1))
 raw_data = np.transpose(raw_data, (0,2,1))
 
