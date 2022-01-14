@@ -100,7 +100,7 @@ x_test_raw_sig = tensor_raw_data[tf.convert_to_tensor(~(training_ids.values))]
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-config_list = ["RespNet"]
+config_list = ["confe","RespNet"]
 for item in config_list:
 
     if item == "confe":
@@ -196,7 +196,6 @@ for item in config_list:
             test_loss.reset_states()
 
     if item == "RespNet":
-
         def scheduler(epoch):
             if epoch <= 20:
                 lr = 1e-2
@@ -267,7 +266,7 @@ for item in config_list:
             if mean_loss < best_loss:
                 best_loss = mean_loss
                 model.save_weights(
-                    os.path.join(results_path, "best_model_" + str(num_epochs) + ".h5")
+                    os.path.join(results_path, "best_model_"+str(1e-2)+"_"+str(1e-4)+"_"+ str(num_epochs) + ".h5")
                 )
             print("validation loss -- {}".format(mean_loss))
             train_loss.reset_states()
