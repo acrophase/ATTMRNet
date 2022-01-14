@@ -4,7 +4,7 @@ from filters import *
 import scipy
 from scipy.signal import find_peaks
 import numpy as np
-import neurokit2 as nk
+#import neurokit2 as nk
 from hrv_analysis.extract_features import _create_interpolation_time, _create_time_info
 import pickle as pkl
 import os 
@@ -84,7 +84,7 @@ import sys
 # # with open(os.path.join(subject_path+'/'+subject+'.pkl'), 'wb') as handle:
 # #     pkl.dump(data, handle)
 
-annotation = pd.read_pickle('C:/Users/ee19s/Desktop/BR_Uncertainty/BRUCE_DATASET_CODE/annotation.pkl')
+annotation = pd.read_pickle('/media/acrophase/pose1/charan/BR_Uncertainty/BRUCE_DATASET_CODE/annotation.pkl')
 
 with open('output','rb') as f:
     output_data = pkl.load(f)
@@ -100,7 +100,5 @@ print(output_data.shape)
 print(raw_data.shape)
 print(annotation.shape)
 
-plt.plot(raw_data[1028][2])
-plt.grid(True)
-plt.show()
+
 
