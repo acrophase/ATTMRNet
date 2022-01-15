@@ -106,7 +106,7 @@ for item in config_list:
     if item == "confe":
         def scheduler(epoch):
             if epoch <= 20:
-                lr = 1e-2
+                lr = 1e-4
             else:
                 lr = 1e-4
             return lr
@@ -188,7 +188,7 @@ for item in config_list:
             if mean_loss < best_loss:
                 best_loss = mean_loss
                 model.save_weights(
-                    os.path.join(results_path, "best_model_"+str(1e-2)+"_"+str(1e-4)+"_"+ str(num_epochs) + ".h5")
+                    os.path.join(results_path, "best_model_"+str(1e-4)+"_"+str(1e-4)+"_"+ str(num_epochs) + ".h5")
                 )
             print("validation loss -- {}".format(mean_loss))
             print(test_loss.result())
@@ -198,7 +198,7 @@ for item in config_list:
     if item == "RespNet":
         def scheduler(epoch):
             if epoch <= 20:
-                lr = 1e-2
+                lr = 1e-4
             else:
                 lr = 1e-4
             return lr
@@ -266,7 +266,7 @@ for item in config_list:
             if mean_loss < best_loss:
                 best_loss = mean_loss
                 model.save_weights(
-                    os.path.join(results_path, "best_model_"+str(1e-2)+"_"+str(1e-4)+"_"+ str(num_epochs) + ".h5")
+                    os.path.join(results_path, "best_model_"+str(1e-4)+"_"+str(1e-4)+"_"+ str(num_epochs) + ".h5")
                 )
             print("validation loss -- {}".format(mean_loss))
             train_loss.reset_states()
