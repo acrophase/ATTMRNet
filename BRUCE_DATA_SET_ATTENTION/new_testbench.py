@@ -41,7 +41,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--save_model_path", type=str, help="Path to saved model", default='/media/acrophase/pose1/charan/BR_Uncertainty/BRUCE_DATASET_CODE/SAVED_BRUCE_MODELS'
+    "--save_model_path", type=str, help="Path to saved model", default='/media/acrophase/pose1/charan/BR_Uncertainty/BRUCE_DATA_SET_ATTENTION/SAVED_BRUCE_MODELS'
 )  #'/media/acrophase/pose1/Kapil/MultiRespDL/DL_Model/SAVED_MODELS')
 parser.add_argument("--srate", type=int, help="sampling rate", default=256)
 parser.add_argument("--win_len", type=int, help="win length in secs", default=32)
@@ -50,7 +50,7 @@ parser.add_argument(
     "--train_test_split_id", type=int, help="train test split id", default=17
 )
 parser.add_argument(
-    "--annot_path", type=str, help="Path to annotation", default='/media/acrophase/pose1/charan/BR_Uncertainty/BRUCE_DATASET_CODE/annotation.pkl'
+    "--annot_path", type=str, help="Path to annotation", default='/media/acrophase/pose1/charan/BR_Uncertainty/BRUCE_DATA_SET_ATTENTION/annotation.pkl'
 )  #'/media/acrophase/pose1/Kapil/MultiRespDL/DL_Model/annotation.pkl')
 
 args = parser.parse_args()
