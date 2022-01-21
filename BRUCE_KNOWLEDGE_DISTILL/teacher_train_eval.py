@@ -30,7 +30,7 @@ from rr_extration import *
 from sklearn.preprocessing import MinMaxScaler
 import re
 import pickle as pkl
-from teacher_model import *
+from bruce_teacher_model import *
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import Huber
@@ -39,82 +39,58 @@ import matplotlib.pyplot as plt
 import datetime
 import sys
 import tqdm
+import argparse
 
-srate = 700
-win_length = 32*srate
-num_epochs = 100
-#config = input("Enter the configuration :")
-data_path = '/media/acrophase/pose1/charan/BR_Uncertainty/ppg_dalia_data'
-data = extract_data(data_path , srate , win_length)
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--save_model_path", type=str, help="Path to saved model", default='/media/acrophase/pose1/charan/BR_Uncertainty/BRUCE_KNOWLEDGE_DISTILL/BRUCE_SAVED_TEACH_MODEL'
+)  #'/media/acrophase/pose1/Kapil/MultiRespDL/DL_Model/SAVED_MODELS')
+parser.add_argument("--srate", type=int, help="sampling rate", default=256)
+parser.add_argument("--win_len", type=int, help="win length in secs", default=32)
+parser.add_argument("--num_epochs", type=int, help="number_of_epochs", default=100)
+parser.add_argument(
+    "--train_test_split_id", type=int, help="train test split id", default=17
+)
+parser.add_argument(
+    "--annot_path", type=str, help="Path to annotation", default='/media/acrophase/pose1/charan/BR_Uncertainty/BRUCE_KNOWLEDGE_DISTILL/annotation.pkl'
+)  #'/media/acrophase/pose1/Kapil/MultiRespDL/DL_Model/annotation.pkl')
 
-for item in enumerate(data.keys()):
-    patient_id = item[1]  
-    ecg = data[patient_id]['ECG']['ECG_DATA']
-    rpeaks = data[patient_id]['ECG']['RPEAKS']
-    amps = data[patient_id]['ECG']['AMPLITUDES']
-    acc = data[patient_id]['ACC']['ACC_DATA']
-    resp = data[patient_id]['RESP']['RESP_DATA']
-    activity_id = data[patient_id]['ACTIVITY_ID']
-    scaler = MinMaxScaler()
+args = parser.parse_args()
 
-    edr_hrv , edr_rpeak , adr , ref_resp = edr_adr_extraction(acc, rpeaks , amps , resp)
+srate = args.srate
+win_length = args.win_len * args.srate
+num_epochs = args.num_epochs
+train_test_split_id = args.train_test_split_id
 
-    for i in range(len(edr_hrv)):
-        edr_hrv[i] = np.append(edr_hrv[i] , np.zeros(128 - len(edr_hrv[i])))
-        edr_rpeak[i] = np.append(edr_rpeak[i] , np.zeros(128 - len(edr_rpeak[i])))
-        adr[i] = np.append(adr[i] , np.zeros(128 - len(adr[i])))
-        ref_resp[i] = np.append(ref_resp[i] , np.zeros(128 - len(ref_resp[i])))
-    ref_rr_duration, _ =  extremas_extraction(ref_resp)
-    ref_rr = (60*4)/ref_rr_duration
-
-    edr_hrv , edr_rpeak , adr , ref_resp = np.expand_dims(np.asarray(edr_hrv), axis = -1), np.expand_dims(np.asarray(edr_rpeak), axis = -1)\
-                               , np.expand_dims(np.asarray(adr), axis =-1) , np.expand_dims(np.asarray(ref_resp), axis =-1)
-    
-    edr_hrv = scaler.fit_transform(edr_hrv.reshape(len(edr_hrv),len(edr_hrv[0])))
-    edr_rpeak = scaler.fit_transform(edr_rpeak.reshape(len(edr_rpeak),len(edr_rpeak[0])))
-    adr = scaler.fit_transform(adr.reshape(len(adr),len(adr[0])))
-    ref_resp = scaler.fit_transform(ref_resp.reshape(len(ref_resp),len(ref_resp[0])))
-
-    windowed_inp = np.concatenate((np.expand_dims(edr_hrv, 1), np.expand_dims(edr_rpeak, 1), np.expand_dims(adr, 1)), axis = 1)
-    int_part  = re.findall(r'\d+', patient_id)
-
-    sub_activity_ids = np.hstack((ref_rr.reshape(-1,1),np.array(activity_id).reshape(-1,1), np.array([int(int_part[0])]*len(edr_hrv)).reshape(-1,1)))
-    
-    if item[0] == 0:
-        final_windowed_inp = windowed_inp
-        final_windowed_op = np.array(ref_resp)
-        final_sub_activity_ids = sub_activity_ids
-    else:
-        final_windowed_inp = np.vstack((final_windowed_inp , windowed_inp))
-        final_windowed_op = np.vstack((final_windowed_op , ref_resp))
-        final_sub_activity_ids = np.vstack((final_sub_activity_ids , sub_activity_ids))
-
-with open('output','rb') as f:
+with open("output", "rb") as f:
     output_data = pkl.load(f)
 
-with open('input','rb') as f:
+with open("input", "rb") as f:
     input_data = pkl.load(f)
 
-with open('raw_signal.pkl','rb') as f:
+with open("raw_signal.pkl", "rb") as f:
     raw_data = pkl.load(f)
 
-input_data = np.transpose(input_data, (0,2,1))
-raw_data = np.transpose(raw_data, (0,2,1))
+input_data = np.transpose(input_data, (0, 2, 1))
+raw_data = np.transpose(raw_data, (0, 2, 1))
 
-input_data = np.around(input_data , decimals = 4)
-raw_data = np.around(raw_data , decimals = 4)
-output_data = np.around(output_data , decimals = 4)
+input_data = np.around(input_data, decimals=4)
+raw_data = np.around(raw_data, decimals=4)
+output_data = np.around(output_data, decimals=4)
 
-annotation = pd.read_pickle('/media/acrophase/pose1/charan/BR_Uncertainty/ATTENTION/annotation.pkl')
-reference_rr = (annotation['Reference_RR'].values).reshape(-1,1)
-reference_rr = np.around(reference_rr , decimals = 4)
+annotation = pd.read_pickle(
+    args.annot_path
+)  # pd.read_pickle('/media/acrophase/pose1/charan/MultiRespDL/DAYI_BIAN/annotation.pkl')
 
-tensor_input = tf.convert_to_tensor(input_data , dtype = 'float32')
-tensor_output = tf.convert_to_tensor(output_data , dtype = 'float32')
-tensor_ref_rr = tf.convert_to_tensor(reference_rr, dtype = 'float32')
-tensor_raw_data = tf.convert_to_tensor(raw_data, dtype = 'float32')
+reference_rr = (annotation["Reference_RR"].values).reshape(-1, 1)
+reference_rr = np.around(reference_rr, decimals=4)
 
-training_ids = annotation['patient_id'] < 13
+tensor_input = tf.convert_to_tensor(input_data, dtype="float32")
+tensor_output = tf.convert_to_tensor(output_data, dtype="float32")
+tensor_ref_rr = tf.convert_to_tensor(reference_rr, dtype="float32")
+tensor_raw_data = tf.convert_to_tensor(raw_data, dtype="float32")
+
+training_ids = annotation["patient_id"] < train_test_split_id
 
 x_train_data = tensor_input[tf.convert_to_tensor(training_ids.values)]
 x_test_data = tensor_input[tf.convert_to_tensor(~(training_ids.values))]
@@ -131,12 +107,12 @@ def scheduler (epoch):
     if epoch <=20:
         lr = 1e-2
     else:
-        lr = 1e-5
+        lr = 1e-3
     return lr
 model_input_shape = (128,3)
 model  = BRUnet_Multi_resp_ATT_MC(model_input_shape)
 loss_fn = Huber()
-save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/Knowledge_Distill/SAVED_TEACHER_MODEL'
+save_path = (args.save_model_path)
 results_path = os.path.join(save_path , "TEACHER_MODEL")
 if not(os.path.isdir(results_path)):
     os.mkdir(results_path)        
@@ -196,7 +172,7 @@ for epoch in tqdm.tqdm(range(num_epochs)):
     if mean_loss < best_loss:
         best_loss = mean_loss
             #model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-3)+'_'+str(num_epochs)+'.h5'))
-        model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-2)+'_'+str(1e-5)+'_'+str(num_epochs)+'.h5'))
+        model.save_weights(os.path.join(results_path, 'best_model_4'+str(1e-2)+'_'+str(1e-3)+'_'+str(num_epochs)+'.h5'))
     print("validation loss -- {}".format(mean_loss))
     print(test_loss.result())
     train_loss.reset_states()
