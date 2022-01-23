@@ -44,7 +44,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--save_model_path", type=str, help="Path to saved model", default='/media/acrophase/pose1/charan/BR_Uncertainty/BRUCE_KNOWLEDGE_DISTILL/SAVED_BRUCE_TEACH_KD_STU_MODEL'
+    "--save_model_path", type=str, help="Path to saved model", default='/media/acrophase/pose1/charan/BR_Uncertainty/BRUCE_KNOWLEDGE_DISTILL/BRUCE_SAVED_TEACH_KD_STU_MODEL'
 )  #'/media/acrophase/pose1/Kapil/MultiRespDL/DL_Model/SAVED_MODELS')
 parser.add_argument("--srate", type=int, help="sampling rate", default=256)
 parser.add_argument("--win_len", type=int, help="win length in secs", default=32)
