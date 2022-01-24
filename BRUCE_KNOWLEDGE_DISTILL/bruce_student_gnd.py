@@ -201,7 +201,7 @@ for epoch in tqdm.tqdm(range(num_epochs)):
     if mean_loss < best_loss:
         best_loss = mean_loss
             #model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-3)+'_'+str(num_epochs)+'.h5'))
-        model_st.save_weights(os.path.join(results_path, 'best_model_6'+str(1e-2)+'_'+str(1e-3)+'_'+str(num_epochs)+'alpha_'+str(alpha)+'.h5'))
+        model_st.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-2)+'_'+str(1e-3)+'_'+str(num_epochs)+'alpha_'+str(alpha)+'.h5'))
     print("validation loss -- {}".format(mean_loss))
     print(test_loss.result())
     train_loss.reset_states()
