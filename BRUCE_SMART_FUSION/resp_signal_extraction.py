@@ -12,13 +12,13 @@ from hrv_analysis.extract_features import _create_interpolation_time, _create_ti
 
 srate = 256
 fbpB , fbpA = band_pass(0.1,0.8,8)
-fkern_lp_B ,fkern_lp_A = cheby_lp(6,25,0.8)              
+fkern_lp_B ,fkern_lp_A = cheby_lp(6,25,1)              
 fkern_hp_B , fkern_hp_A = cheby_hp(4,20,0.1)   
 
 flpB_ref,flpA_ref = scipy.signal.cheby2(6,20 , 0.6/(srate/2),btype='lowpass')
 fhpB_ref,fhpA_ref = scipy.signal.cheby2(4,20 ,0.1/(srate/2),btype='highpass')
 
-def edr_adr_extraction(acc , rpeaks , rpeak_amplitudes,reference_resp, interp_rate = 4):
+def edr_adr_extraction(acc , rpeaks , rpeak_amplitudes,interp_rate = 4,ds_factor = 10):
     '''
     inputs -- acc - Accelerometer signal extracted from dictionary returned by PPG_Dalia_data_extraction()
               rpeaks - R peak indices obtained from dictionary returned by PPG_Dalia_data_extraction()
@@ -34,7 +34,7 @@ def edr_adr_extraction(acc , rpeaks , rpeak_amplitudes,reference_resp, interp_ra
     final_edr_hrv = []
     final_edr_rpeak = []
     final_adr = []
-    final_ref_resp = []
+    #final_ref_resp = []
     eps = 0.0001
     #-----------------------RESPIRATORY SIGNAL BY HRV------------------------------------
     # interpolate the rr interval using cubic spline interpolation and filter between 
@@ -116,55 +116,53 @@ def edr_adr_extraction(acc , rpeaks , rpeak_amplitudes,reference_resp, interp_ra
     # the respiratory signal.
     j=0
     for item in acc:
-        lp_filt_sig = scipy.signal.filtfilt(fkern_lp_B , fkern_lp_A , item)
-        hp_filt_sig = scipy.signal.filtfilt(fkern_hp_B , fkern_hp_A , lp_filt_sig)
-        spectrum = np.absolute(scipy.fft.fft(hp_filt_sig)**2)
-        freq = scipy.fft.fftfreq(len(spectrum) , d= 1/srate)
-        upper_index = int(len(item)/srate + 1)
-        lower_index = int((0.1*len(item))/srate)
+        lp_filt_sig = scipy.signal.filtfilt(fkern_lp_B, fkern_lp_A, item)
+        hp_filt_sig = scipy.signal.filtfilt(fkern_hp_B, fkern_hp_A, lp_filt_sig)
+        spectrum = np.absolute(scipy.fft.fft(hp_filt_sig) ** 2)
+        freq = scipy.fft.fftfreq(len(spectrum), d=1 / srate)
+        upper_index = int(len(item) / srate + 1)
+        lower_index = int((0.1 * len(item)) / srate)
         rel_freq = freq[lower_index:upper_index]
         rel_spectrum = spectrum[lower_index:upper_index]
         max_freq = rel_freq[np.argmax(rel_spectrum)]
-        lower_cut_freq = max(0.1 , max_freq-0.4)
+        lower_cut_freq = max(0.1, max_freq - 0.4)
         upper_cut_freq = max_freq + 0.4
-        flpB ,flpA = scipy.signal.cheby2(5,30,upper_cut_freq/(srate/2) , btype='lowpass')
-        fhpB , fhpA = scipy.signal.cheby2(4,30, lower_cut_freq/(srate/2) , btype='highpass')
-        lp_filt_acc = scipy.signal.filtfilt(flpB, flpA , hp_filt_sig)
-        final_signal = scipy.signal.filtfilt(fhpB , fhpA, lp_filt_acc)
-        resample_sig = scipy.signal.resample(final_signal , len(final_edr_rpeak[j]))
-        #resample_sig = np.append(resample_sig , np.zeros(128 - len(resample_sig)))
-        final_adr.append(resample_sig)
-        j+=1
-    
-    k = 0
-    for item in reference_resp:
-        lp_filt = scipy.signal.filtfilt(flpB_ref,flpA_ref , item)
-        hp_filt = scipy.signal.filtfilt(fhpB_ref,fhpA_ref , lp_filt)
-        resmp_signal = scipy.signal.resample(hp_filt , len(final_edr_rpeak[k]))
-        #resmp_signal = np.append(resmp_signal , np.zeros(128 - len(resmp_signal)))
-        final_ref_resp.append(resmp_signal)
-        k+=1
-    return final_edr_hrv ,final_edr_rpeak ,final_adr,final_ref_resp
+        flpB, flpA = scipy.signal.cheby2(
+            5, 30, upper_cut_freq / (srate / 2), btype="lowpass"
+        )
+        fhpB, fhpA = scipy.signal.cheby2(
+            4, 30, lower_cut_freq / (srate / 2), btype="highpass"
+        )
+        lp_filt_acc = scipy.signal.filtfilt(flpB, flpA, hp_filt_sig)
+        final_signal = scipy.signal.filtfilt(fhpB, fhpA, lp_filt_acc)
+        final_adr.append(scipy.signal.decimate(final_signal, ds_factor))
 
-# path = 'C:/Users/ee19s/Desktop/BR_Uncertainty/FINAL_JOURNAL_DATA'
+    return final_edr_hrv ,final_edr_rpeak ,final_adr
+
+# path = '/media/acrophase/pose1/charan/BR_Uncertainty/BRUCE_DATA_SET/FINAL_JOURNAL_DATA'
 # srate = 256
 # win_len = 32*srate
 # data = extract_data(path , srate , win_len)
-# key_id = 'S21'
+# key_id = 'S1'
 
 # rpeaks = data[key_id]['ECG']['RPEAKS']
 # amps = data[key_id]['ECG']['AMPLITUDES']
 # acc = data[key_id]['ACC']['ACC_DATA']
 # resp = data[key_id]['RESP']['RESP_DATA']
 
-# edr_hrv,edrpeak,adr,ref_resp = edr_adr_extraction(acc,rpeaks,amps,resp)
+# edr_hrv,edr_rpeak,adr = edr_adr_extraction(acc,rpeaks,amps)
+# print(len(edr_hrv))
+# print(len(edr_rpeak))
+# print(len(adr))
+# print(len(edr_hrv[0]))
+# print(len(adr[0]))
 
 # plt.plot(edr_hrv[16])
 # plt.grid(True)
 # plt.title("EDR_HRV")
 # plt.show()
 
-# plt.plot(edrpeak[15])
+# plt.plot(edr_rpeak[15])
 # plt.grid(True)
 # plt.title("EDR_RPEAK")
 # plt.show()

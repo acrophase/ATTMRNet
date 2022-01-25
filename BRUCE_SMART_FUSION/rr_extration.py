@@ -96,38 +96,39 @@ def rr_extraction(resp_signal, srate):
 # acc = data[key_id]['ACC']['ACC_DATA']
 # resp = data[key_id]['RESP']['RESP_DATA']
 
-# edr_hrv,edr_rpeak,adr,ref_resp = edr_adr_extraction(acc,rpeaks,amps,resp)
+# edr_hrv,edr_rpeak,adr = edr_adr_extraction(acc,rpeaks,amps,resp)
 # bd_hrv ,cv_hrv,mpp_hrv,tm_hrv, cvm_hrv = rr_extraction(edr_hrv,srate)
 # bd_rpeak ,cv_rpeak,mpp_rpeak,tm_rpeak, cvm_rpeak = rr_extraction(edr_rpeak,srate)
 # bd_adr,cv_adr,mpp_adr,tm_adr, cvm_adr = rr_extraction(adr,srate)
-# bd_ref_resp , cv_ref,mpp_ref,tm_ref, cvm_ref= rr_extraction(ref_resp,srate)
+# #bd_ref_resp , cv_ref,mpp_ref,tm_ref, cvm_ref= rr_extraction(ref_resp,srate)
 
 # rr_hrv = (60*4)/bd_hrv
 # rr_rpeak = (60*4)/bd_rpeak
-# rr_adr = (60*4)/bd_adr
-# rr_ref = (60*4)/bd_ref_resp
+# rr_adr = 60/(bd_adr/(srate/10))
+# # rr_ref = (60*4)/bd_ref_resp
 
 # print(len(rr_hrv))
 # print(len(rr_rpeak))
 # print(len(rr_adr))
-# print(len(rr_ref))
+# #print(len(rr_ref))
 # print("==========================================================================================")
 # print(len(cv_hrv))
 # print(len(cv_rpeak))
 # print(len(cv_adr))
-# print(len(cv_ref))
+# #print(len(cv_ref))
 # print("============================================================================================")
 # print(len(mpp_hrv))
 # print(len(mpp_rpeak))
 # print(len(mpp_adr))
-# print(len(mpp_ref))
+# #print(len(mpp_ref))
 # print("=============================================================================================")
 # print(len(tm_hrv))
 # print(len(tm_rpeak))
 # print(len(tm_adr))
-# print(len(tm_ref))
+# #print(len(tm_ref))
 # print("==============================================================================================")
 # print(len(cvm_hrv))
 # print(len(cvm_rpeak))
 # print(len(cvm_adr))
-# print(len(cvm_ref))
+# #print(rr_adr)
+#print(len(cvm_ref))
