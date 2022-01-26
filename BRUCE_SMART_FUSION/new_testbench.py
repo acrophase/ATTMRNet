@@ -32,7 +32,7 @@ if __name__ == "__main__":
     parser.add_argument("--data_path", type=str, help="Path to data",default ='/media/acrophase/pose1/charan/BR_Uncertainty/BRUCE_DATA_SET/FINAL_JOURNAL_DATA')
     parser.add_argument(
         "--input_features",
-        default="morph",
+        default="freq",
         type=str,
         help="'freq', 'morph' or 'freq_morph'",
     )
@@ -423,12 +423,6 @@ if __name__ == "__main__":
                 is_save=True,
                 model_save_path=current_model_path,
             )
-            best_para_hrv,best_para_rpeak,best_para_adr,score_hrv,score_rpeak,score_adr = ml.cross_val_bayesianridge()
-            print(best_para_hrv)
-            print(best_para_rpeak)
-            print(best_para_adr)
-        
-            sys.exit()
 
             # List containing objects related to different models.
             print("....................Start of modelling...................")
