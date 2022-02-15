@@ -32,7 +32,7 @@ if __name__ == "__main__":
     parser.add_argument("--data_path", type=str, help="Path to data",default ='/media/acrophase/pose1/charan/BR_Uncertainty/BRUCE_DATA_SET/FINAL_JOURNAL_DATA')
     parser.add_argument(
         "--input_features",
-        default="freq",
+        default="freq_morph",
         type=str,
         help="'freq', 'morph' or 'freq_morph'",
     )
@@ -471,11 +471,11 @@ if __name__ == "__main__":
                 # sum of all predicted values.
                 # normal_sum = hrv_pred + rpeak_pred + adr_pred
                 # normalise the weights,
-                hrv_weights = np.exp((-1 * hrv_pred) / 5)  # 1 - (hrv_pred/normal_sum)
+                hrv_weights = np.exp((-1 * hrv_pred) / 4)  # 1 - (hrv_pred/normal_sum)
                 rpeak_weights = np.exp(
-                    (-1 * rpeak_pred) / 5
+                    (-1 * rpeak_pred) / 4
                 )  # 1-(rpeak_pred/normal_sum)
-                adr_weights = np.exp((-1 * adr_pred) / 5)  # 1 - (adr_pred/normal_sum)
+                adr_weights = np.exp((-1 * adr_pred) / 4)  # 1 - (adr_pred/normal_sum)
                 # obtain the net rr and error and store it in list.
                 net_rr = (
                     rr_hrv * hrv_weights

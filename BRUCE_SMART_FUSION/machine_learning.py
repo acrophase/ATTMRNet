@@ -320,7 +320,7 @@ class machine_learning:
             regressor_rpeak_new, model_type="Ridge_reg", modality="rpeak_amp"
         )
         self.save_path(regressor_adr_new, model_type="Ridge_reg", modality="adr")
-
+        
         y_predict_hrv_new = regressor_hrv_new.predict(x_test_hrv)
         y_predict_rpeak_new = regressor_rpeak_new.predict(x_test_rpeak)
         y_predict_adr_new = regressor_adr_new.predict(x_test_adr)
@@ -843,6 +843,7 @@ class machine_learning:
         y_predict_rpeak = svr_rpeak_new.predict(x_test_rpeak)
         y_predict_adr = svr_adr_new.predict(x_test_adr)
         end = time.time()
+        print("Elapsed time for SVR {}".format(end-start))
         # error_hrv = mean_squared_error(y_test_hrv , y_predict_hrv)
         # error_rpeak = mean_squared_error(y_test_rpeak , y_predict_rpeak)
         # error_adr = mean_squared_error(y_test_adr , y_predict_adr)
@@ -922,15 +923,15 @@ class machine_learning:
         lasso_reg_hrv_new.fit(x_train_hrv, y_train_hrv.ravel())
         lasso_reg_rpeak_new.fit(x_train_rpeak, y_train_rpeak.ravel())
         lasso_reg_adr_new.fit(x_train_adr, y_train_adr.ravel())
-
+        start = time.time()
         y_predict_hrv_new = lasso_reg_hrv_new.predict(x_test_hrv)
         y_predict_rpeak_new = lasso_reg_rpeak_new.predict(x_test_rpeak)
         y_predict_adr_new = lasso_reg_adr_new.predict(x_test_adr)
-
+        end = time.time()
         # error_hrv_new = mean_squared_error(y_test_hrv,y_predict_hrv_new)
         # error_rpeak_new = mean_squared_error(y_test_rpeak , y_predict_rpeak_new)
         # error_adr_new = mean_squared_error(y_test_adr , y_predict_adr_new)
-
+        print("Elapsed time for Lasso {}".format(end-start))
         return (
             y_predict_hrv_new,
             y_predict_rpeak_new,
