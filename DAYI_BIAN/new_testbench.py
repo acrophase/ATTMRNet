@@ -97,8 +97,7 @@ with open('input','rb') as f:
 
 with open('raw_signal.pkl','rb') as f:
     raw_data = pkl.load(f)
-print(raw_data)
-sys.exit()
+
 input_data = np.transpose(input_data, (0,2,1))
 raw_data = np.transpose(raw_data, (0,2,1))
 
@@ -128,7 +127,7 @@ y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
 model_input_shape = (2048,3)
-lr = 1e-5
+lr = 1e-3
 optimizer = Adam(learning_rate = lr) 
 model  = CNN(model_input_shape)
 loss_fn = Huber()
