@@ -132,7 +132,7 @@ def scheduler (epoch):
     if epoch <=20:
         lr = 1e-2
     else:
-        lr = 1e-5
+        lr = 1e-4
     return lr
 model_input_shape = (128,3)
 model_student  = BRUnet_Multi_resp_student_2(model_input_shape)
@@ -156,67 +156,68 @@ train_dataset = train_dataset.shuffle(len(x_train_data)).batch(128)
 test_dataset = tf.data.Dataset.from_tensor_slices((x_test_data , y_test_data, x_test_ref_rr))
 test_dataset = test_dataset.batch(128)
 
-print("Starting the training")
-for epoch in tqdm.tqdm(range(num_epochs)):
-    print("starting the epoch : {}".format(epoch + 1))
-    train_loss_list = []
-    optimizer = Adam(learning_rate = scheduler(epoch))
-    for step, (x_batch_train , y_batch_train, x_batch_train_ref_rr) in enumerate(train_dataset):
-        with tf.GradientTape() as tape:
-            out_st,out_rr_st,e6_st,at1_st,at2_st,at4_st,at5_st,at6_st,at7_st= model_student(x_batch_train , training = True)
-            out_tea, out_rr_tea,e6_tea,at1_tea,at2_tea,at3_tea,at4_tea,at5_tea,\
-            at6_tea,at7_tea,at8_tea,at9_tea = model_teacher(x_batch_train , training = True)
-            loss_1 = loss_fn(out_tea , out_st)
-            loss_2 = loss_fn(out_rr_tea , out_rr_st)
-            loss_3 = loss_fn(e6_tea,e6_st)
-            loss_4 = loss_fn(at1_tea,at1_st)
-            loss_5 = loss_fn(at4_tea, at4_st)
-            #loss_value_rr = loss_fn(x_batch_train_ref_rr, out_rr)
-            #net_loss_value = loss_value + loss_value_rr
-            net_loss_value = loss_1+loss_2+loss_3+loss_4+loss_5
-            train_loss_list.append(net_loss_value)  
-        grads = tape.gradient(net_loss_value, model_student.trainable_weights)
-        optimizer.apply_gradients(zip(grads, model_student.trainable_weights)) 
-        train_loss(net_loss_value)
-        #print(out_rr)
-        #print("###############################################")
-        #print(out_rr)
-        with train_summary_writer.as_default():
-            tf.summary.scalar('loss', train_loss.result(), step=epoch)
+for j in range (4,6):
+    print("Starting the training")
+    for epoch in tqdm.tqdm(range(num_epochs)):
+        print("starting the epoch : {}".format(epoch + 1))
+        train_loss_list = []
+        optimizer = Adam(learning_rate = scheduler(epoch))
+        for step, (x_batch_train , y_batch_train, x_batch_train_ref_rr) in enumerate(train_dataset):
+            with tf.GradientTape() as tape:
+                out_st,out_rr_st,e6_st,at1_st,at2_st,at4_st,at5_st,at6_st,at7_st= model_student(x_batch_train , training = True)
+                out_tea, out_rr_tea,e6_tea,at1_tea,at2_tea,at3_tea,at4_tea,at5_tea,\
+                at6_tea,at7_tea,at8_tea,at9_tea = model_teacher(x_batch_train , training = True)
+                loss_1 = loss_fn(out_tea , out_st)
+                loss_2 = loss_fn(out_rr_tea , out_rr_st)
+                loss_3 = loss_fn(e6_tea,e6_st)
+                loss_4 = loss_fn(at1_tea,at1_st)
+                loss_5 = loss_fn(at4_tea, at4_st)
+                #loss_value_rr = loss_fn(x_batch_train_ref_rr, out_rr)
+                #net_loss_value = loss_value + loss_value_rr
+                net_loss_value = loss_1+loss_2+loss_3+loss_4+loss_5
+                train_loss_list.append(net_loss_value)  
+            grads = tape.gradient(net_loss_value, model_student.trainable_weights)
+            optimizer.apply_gradients(zip(grads, model_student.trainable_weights)) 
+            train_loss(net_loss_value)
+            #print(out_rr)
+            #print("###############################################")
+            #print(out_rr)
+            with train_summary_writer.as_default():
+                tf.summary.scalar('loss', train_loss.result(), step=epoch)
 
-        if step%10 == 0:
-            print('Epoch [%d/%d], lter [%d] Loss: %.4f'
-                    %(epoch+1, num_epochs, step+1, net_loss_value))
-    print("net loss -- {}".format(np.mean(np.array(train_loss_list))))
-    test_loss_list = []
-    best_loss = 100000
+            if step%10 == 0:
+                print('Epoch [%d/%d], lter [%d] Loss: %.4f'
+                        %(epoch+1, num_epochs, step+1, net_loss_value))
+        print("net loss -- {}".format(np.mean(np.array(train_loss_list))))
+        test_loss_list = []
+        best_loss = 100000
 
-    for step , (x_batch_test,y_batch_test,x_batch_test_ref_rr) in enumerate(test_dataset):
-        test_out_st,test_out_rr_st,test_e6_st,test_at1_st,test_at2_st,test_at4_st,test_at5_st,\
-                                               test_at6_st,test_at7_st= model_student(x_batch_test , training = True)
-        
-        test_out_tea, test_out_rr_tea,test_e6_tea,test_at1_tea,test_at2_tea,test_at3_tea,test_at4_tea,test_at5_tea,\
-        test_at6_tea,test_at7_tea,test_at8_tea,test_at9_tea = model_teacher(x_batch_test , training = True)
-        #test_loss_resp = loss_fn(y_batch_test , test_output)
-        #test_loss_rr = loss_fn(x_batch_test_ref_rr , test_out_rr)
-        test_loss_1 = loss_fn(test_out_st , test_out_tea)
-        test_loss_2 = loss_fn(test_out_rr_tea , test_out_rr_st)
-        test_loss_3 = loss_fn(test_e6_tea , test_e6_st)
-        test_loss_4 = loss_fn(test_at1_tea , test_at1_st)
-        test_loss_5 = loss_fn(test_at4_tea , test_at4_st)
-        #test_loss_val = test_loss_resp + test_loss_rr
-        test_loss_val = test_loss_1 + test_loss_2 + test_loss_3 + test_loss_4 + test_loss_5
-        test_loss(test_loss_val)
-        test_loss_list.append(test_loss_val)
-        with test_summary_writer.as_default():
-            tf.summary.scalar('loss', test_loss.result(), step=epoch)
-        #print(test_out_rr)
-    mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
-    if mean_loss < best_loss:
-        best_loss = mean_loss
-            #model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-3)+'_'+str(num_epochs)+'.h5'))
-        model_student.save_weights(os.path.join(results_path, 'best_model_5'+str(1e-2)+'_'+str(1e-5)+'_'+str(num_epochs)+'.h5'))
-    print("validation loss -- {}".format(mean_loss))
-    print(test_loss.result())
-    train_loss.reset_states()
-    test_loss.reset_states()
+        for step , (x_batch_test,y_batch_test,x_batch_test_ref_rr) in enumerate(test_dataset):
+            test_out_st,test_out_rr_st,test_e6_st,test_at1_st,test_at2_st,test_at4_st,test_at5_st,\
+                                                test_at6_st,test_at7_st= model_student(x_batch_test , training = True)
+            
+            test_out_tea, test_out_rr_tea,test_e6_tea,test_at1_tea,test_at2_tea,test_at3_tea,test_at4_tea,test_at5_tea,\
+            test_at6_tea,test_at7_tea,test_at8_tea,test_at9_tea = model_teacher(x_batch_test , training = True)
+            #test_loss_resp = loss_fn(y_batch_test , test_output)
+            #test_loss_rr = loss_fn(x_batch_test_ref_rr , test_out_rr)
+            test_loss_1 = loss_fn(test_out_st , test_out_tea)
+            test_loss_2 = loss_fn(test_out_rr_tea , test_out_rr_st)
+            test_loss_3 = loss_fn(test_e6_tea , test_e6_st)
+            test_loss_4 = loss_fn(test_at1_tea , test_at1_st)
+            test_loss_5 = loss_fn(test_at4_tea , test_at4_st)
+            #test_loss_val = test_loss_resp + test_loss_rr
+            test_loss_val = test_loss_1 + test_loss_2 + test_loss_3 + test_loss_4 + test_loss_5
+            test_loss(test_loss_val)
+            test_loss_list.append(test_loss_val)
+            with test_summary_writer.as_default():
+                tf.summary.scalar('loss', test_loss.result(), step=epoch)
+            #print(test_out_rr)
+        mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
+        if mean_loss < best_loss:
+            best_loss = mean_loss
+                #model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-3)+'_'+str(num_epochs)+'.h5'))
+            model_student.save_weights(os.path.join(results_path, 'best_model_'+str(j)+str(1e-2)+'_'+str(1e-4)+'_'+str(num_epochs)+'.h5'))
+        print("validation loss -- {}".format(mean_loss))
+        print(test_loss.result())
+        train_loss.reset_states()
+        test_loss.reset_states()

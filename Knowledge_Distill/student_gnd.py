@@ -132,14 +132,14 @@ def scheduler (epoch):
     if epoch <=20:
         lr = 1e-2
     else:
-        lr = 1e-5
+        lr = 1e-4
     return lr
 model_input_shape = (128,3)
 model_st  = BRUnet_Multi_resp_student_2(model_input_shape)
 model_teacher = BRUnet_Multi_resp_ATT_MC(model_input_shape)
 loss_fn = Huber()
 model_st(tf.ones((128,128,3)))
-model_st.load_weights('/media/acrophase/pose1/charan/BR_Uncertainty/Knowledge_Distill/SAVED_TEAC_KD_STU/TEACHER_MODEL/best_model_50.01_1e-05_100.h5')
+model_st.load_weights('/media/acrophase/pose1/charan/BR_Uncertainty/Knowledge_Distill/SAVED_TEAC_KD_STU/TEACHER_MODEL/best_model_30.01_0.0001_100.h5')
 save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/Knowledge_Distill/SAVED_MODEL_STU_GND_2'
 results_path = os.path.join(save_path , "TEACHER_MODEL")
 if not(os.path.isdir(results_path)):
@@ -225,7 +225,7 @@ for epoch in tqdm.tqdm(range(num_epochs)):
     if mean_loss < best_loss:
         best_loss = mean_loss
             #model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-3)+'_'+str(num_epochs)+'.h5'))
-        model_st.save_weights(os.path.join(results_path, 'best_model_5'+str(1e-2)+'_'+str(1e-5)+'_'+str(num_epochs)+'alpha_'+str(alpha)+'.h5'))
+        model_st.save_weights(os.path.join(results_path, 'best_model_3'+str(1e-2)+'_'+str(1e-4)+'_'+str(num_epochs)+'alpha_'+str(alpha)+'.h5'))
     print("validation loss -- {}".format(mean_loss))
     print(test_loss.result())
     train_loss.reset_states()
