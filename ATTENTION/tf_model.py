@@ -407,7 +407,7 @@ class BRUnet_Multi_resp_ATT(tf.keras.Model):
         d9_ecg = self.de9_ecg(d8_ecg)
         #d10_ecg = self.ev2(d9_ecg)
 
-        return d9_ecg,out_4,attn1,attn2,attn3,attn4,attn5,attn6,attn7,attn8,attn9
+        return d9_ecg,out_4,attn1,attn2,attn3,attn4,attn5,attn6,attn7,attn8,attn9,e6
 
 class BRUnet_Encoder_ATT(tf.keras.Model):
     def __init__(self,in_channels):
