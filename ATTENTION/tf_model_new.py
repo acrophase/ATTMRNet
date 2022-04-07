@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
-import evidential_deep_learning as edl
+#import evidential_deep_learning as edl
 from tensorflow.keras.models import Model
 from tensorflow.keras.regularizers import l2
 
