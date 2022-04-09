@@ -808,14 +808,14 @@ class BRUnet_Multi_resp_student_4(tf.keras.Model):
 
         self.attn1 = AttentionBlock(1024)
 
-        self.en7_p = keras.Sequential([layers.Conv1D(128 , kernel_size = 4 , strides = 2 , padding = 'same',
-                                                       kernel_regularizer=l2(lam),bias_regularizer=l2(lam)),
-                                       layers.BatchNormalization(axis = -1),
-                                       layers.LeakyReLU(alpha = 0.2),
-                                       MonteCarloDropout(rate = 0.1),
-                                       IncBlock(128,128)])
+        #self.en7_p = keras.Sequential([layers.Conv1D(128 , kernel_size = 4 , strides = 2 , padding = 'same',
+        #                                               kernel_regularizer=l2(lam),bias_regularizer=l2(lam)),
+        #                               layers.BatchNormalization(axis = -1),
+        #                               layers.LeakyReLU(alpha = 0.2),
+        #                               MonteCarloDropout(rate = 0.1),
+        #                               IncBlock(128,128)])
         
-        self.attn2 = AttentionBlock(128)
+        #self.attn2 = AttentionBlock(128)
         
         # self.en8_p = keras.Sequential([layers.Conv1D(64 , kernel_size = 4 , strides = 2, padding = 'same',
         #                                         kernel_regularizer=l2(lam),bias_regularizer=l2(lam)),
@@ -826,7 +826,7 @@ class BRUnet_Multi_resp_student_4(tf.keras.Model):
         
         # self.attn3 = AttentionBlock(64)
 
-        self.en9_p = keras.Sequential([layers.Conv1D(4 , kernel_size = 4 , strides = 4, padding = 'same',
+        self.en9_p = keras.Sequential([layers.Conv1D(4 , kernel_size = 4 , strides = 8, padding = 'same',
                                                      kernel_regularizer=l2(lam),bias_regularizer=l2(lam)),
                                       layers.BatchNormalization(axis = -1),
                                       layers.LeakyReLU(alpha = 0.2),
@@ -928,11 +928,11 @@ class BRUnet_Multi_resp_student_4(tf.keras.Model):
         #e5 = self.en5(e4)
         e6 = self.en6(e2)
         attn1 = self.attn1(e6)
-        out_1 = self.en7_p(attn1)
-        attn2 = self.attn2(out_1)
+        #out_1 = self.en7_p(attn1)
+        #attn2 = self.attn2(out_1)
         #out_2 = self.en8_p(attn2)
         #attn3 = self.attn3(out_2)
-        out_3 = self.en9_p(attn2)
+        out_3 = self.en9_p(attn1)
         attn4 = self.attn4(out_3)
         out_4 = self.fc(attn4)
         #out_5 = self.ev1(out_4)
@@ -959,7 +959,7 @@ class BRUnet_Multi_resp_student_4(tf.keras.Model):
         d9_ecg = self.de9_ecg(d8_ecg)
         #d10_ecg = self.ev2(d9_ecg)
 
-        return d9_ecg,out_4,e6,attn1,attn2,attn4,attn8,attn9
+        return d9_ecg,out_4,e6,attn1,attn4,attn8,attn9
 
 
 class BRUnet_Multi_resp_student_5(tf.keras.Model):
@@ -1020,14 +1020,14 @@ class BRUnet_Multi_resp_student_5(tf.keras.Model):
 
         self.attn1 = AttentionBlock(1024)
 
-        self.en7_p = keras.Sequential([layers.Conv1D(128 , kernel_size = 4 , strides = 2 , padding = 'same',
-                                                       kernel_regularizer=l2(lam),bias_regularizer=l2(lam)),
-                                       layers.BatchNormalization(axis = -1),
-                                       layers.LeakyReLU(alpha = 0.2),
-                                       MonteCarloDropout(rate = 0.1),
-                                       IncBlock(128,128)])
+        #self.en7_p = keras.Sequential([layers.Conv1D(128 , kernel_size = 4 , strides = 2 , padding = 'same',
+        #                                               kernel_regularizer=l2(lam),bias_regularizer=l2(lam)),
+        #                               layers.BatchNormalization(axis = -1),
+        #                               layers.LeakyReLU(alpha = 0.2),
+        #                               MonteCarloDropout(rate = 0.1),
+        #                               IncBlock(128,128)])
         
-        self.attn2 = AttentionBlock(128)
+        #self.attn2 = AttentionBlock(128)
         
         # self.en8_p = keras.Sequential([layers.Conv1D(64 , kernel_size = 4 , strides = 2, padding = 'same',
         #                                         kernel_regularizer=l2(lam),bias_regularizer=l2(lam)),
@@ -1038,7 +1038,7 @@ class BRUnet_Multi_resp_student_5(tf.keras.Model):
         
         # self.attn3 = AttentionBlock(64)
 
-        self.en9_p = keras.Sequential([layers.Conv1D(4 , kernel_size = 4 , strides = 4, padding = 'same',
+        self.en9_p = keras.Sequential([layers.Conv1D(4 , kernel_size = 4 , strides = 8, padding = 'same',
                                                      kernel_regularizer=l2(lam),bias_regularizer=l2(lam)),
                                       layers.BatchNormalization(axis = -1),
                                       layers.LeakyReLU(alpha = 0.2),
@@ -1140,11 +1140,11 @@ class BRUnet_Multi_resp_student_5(tf.keras.Model):
         #e5 = self.en5(e4)
         e6 = self.en6(e1)
         attn1 = self.attn1(e6)
-        out_1 = self.en7_p(attn1)
-        attn2 = self.attn2(out_1)
+        #out_1 = self.en7_p(attn1)
+        #attn2 = self.attn2(out_1)
         #out_2 = self.en8_p(attn2)
         #attn3 = self.attn3(out_2)
-        out_3 = self.en9_p(attn2)
+        out_3 = self.en9_p(attn1)
         attn4 = self.attn4(out_3)
         out_4 = self.fc(attn4)
         #out_5 = self.ev1(out_4)
@@ -1171,4 +1171,4 @@ class BRUnet_Multi_resp_student_5(tf.keras.Model):
         d9_ecg = self.de9_ecg(d8_ecg)
         #d10_ecg = self.ev2(d9_ecg)
 
-        return d9_ecg,out_4,e6,attn1,attn2,attn4,attn9
+        return d9_ecg,out_4,e6,attn1,attn4,attn9

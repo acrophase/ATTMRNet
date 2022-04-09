@@ -126,7 +126,7 @@ x_test_raw_sig = tensor_raw_data[tf.convert_to_tensor(~(training_ids.values))]
 y_train_data = tensor_output[tf.convert_to_tensor(training_ids.values)]
 y_test_data = tensor_output[tf.convert_to_tensor(~(training_ids.values))]
 
-config_list = ["four" , "two" , "one"]
+config_list = ["four","two","one"]
 
 for item in config_list:
     if item == "four":
@@ -199,7 +199,7 @@ for item in config_list:
             if mean_loss < best_loss:
                 best_loss = mean_loss
                     #model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-3)+'_'+str(num_epochs)+'.h5'))
-                model.save_weights(os.path.join(results_path, 'best_model_'+str(1e-2)+'_'+str(1e-4)+'_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_12'+str(1e-2)+'_'+str(1e-4)+'_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
             print(test_loss.result())
             train_loss.reset_states()
@@ -214,83 +214,6 @@ for item in config_list:
             return lr
         model_input_shape = (128,3)
         model  = BRUnet_Multi_resp_student_4(model_input_shape)
-        loss_fn = Huber()
-        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/Knowledge_Distill/SAVED_STUDENT_MODEL_CONFIG'
-        results_path = os.path.join(save_path , item.lower())
-        if not(os.path.isdir(results_path)):
-            os.mkdir(results_path)        
-        train_loss = tf.keras.metrics.Mean('train_loss', dtype=tf.float32)
-        test_loss = tf.keras.metrics.Mean('test_loss', dtype=tf.float32)
-
-        current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        train_log_dir = 'evi_student_new/logs/gradient_tape/'+ current_time + '/train'
-        test_log_dir = 'evi_student_new/logs/gradient_tape/' + current_time + '/test'
-        train_summary_writer = tf.summary.create_file_writer(train_log_dir)
-        test_summary_writer = tf.summary.create_file_writer(test_log_dir)
-        
-        train_dataset = tf.data.Dataset.from_tensor_slices((x_train_data , y_train_data, x_train_ref_rr))
-        train_dataset = train_dataset.shuffle(len(x_train_data)).batch(128)
-        test_dataset = tf.data.Dataset.from_tensor_slices((x_test_data , y_test_data, x_test_ref_rr))
-        test_dataset = test_dataset.batch(128)
-        
-        print("Starting the training for : {}".format(item))
-        for epoch in tqdm.tqdm(range(num_epochs)):
-            print("starting the epoch : {}".format(epoch + 1))
-            train_loss_list = []
-            optimizer = Adam(learning_rate = scheduler(epoch))
-            for step, (x_batch_train , y_batch_train, x_batch_train_ref_rr) in enumerate(train_dataset):
-                with tf.GradientTape() as tape:
-                    output, out_rr,_,_,_,_,_,_ = model(x_batch_train , training = True)
-                    loss_value = loss_fn(y_batch_train , output)
-                    loss_value_rr = loss_fn(x_batch_train_ref_rr, out_rr)
-                    net_loss_value = loss_value + loss_value_rr
-                    train_loss_list.append(net_loss_value)  
-                grads = tape.gradient(net_loss_value, model.trainable_weights)
-                optimizer.apply_gradients(zip(grads, model.trainable_weights)) 
-                train_loss(net_loss_value)
-                #print(out_rr)
-                #print("###############################################")
-                #print(out_rr)
-                with train_summary_writer.as_default():
-                    tf.summary.scalar('loss', train_loss.result(), step=epoch)
-
-                if step%10 == 0:
-                    print('Epoch [%d/%d], lter [%d] Loss: %.4f'
-                            %(epoch+1, num_epochs, step+1, loss_value))
-            print("net loss -- {}".format(np.mean(np.array(train_loss_list))))
-            test_loss_list = []
-            best_loss = 100000
-
-            for step , (x_batch_test,y_batch_test,x_batch_test_ref_rr) in enumerate(test_dataset):
-                test_output,test_out_rr,_,_,_,_,_,_ = model(x_batch_test)
-                test_loss_resp = loss_fn(y_batch_test , test_output)
-                test_loss_rr = loss_fn(x_batch_test_ref_rr , test_out_rr)
-                test_loss_val = test_loss_resp + test_loss_rr
-                test_loss(test_loss_val)
-                test_loss_list.append(test_loss_val)
-                with test_summary_writer.as_default():
-                    tf.summary.scalar('loss', test_loss.result(), step=epoch)
-                #print(test_out_rr)
-            mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
-            if mean_loss < best_loss:
-                best_loss = mean_loss
-                    #model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-3)+'_'+str(num_epochs)+'.h5'))
-                model.save_weights(os.path.join(results_path, 'best_model_'+str(1e-2)+'_'+str(1e-4)+'_'+str(num_epochs)+'.h5'))
-            print("validation loss -- {}".format(mean_loss))
-            print(test_loss.result())
-            train_loss.reset_states()
-            test_loss.reset_states()
-    
-
-    if item == "one":
-        def scheduler (epoch):
-            if epoch <=20:
-                lr = 1e-2
-            else:
-                lr = 1e-4
-            return lr
-        model_input_shape = (128,3)
-        model  = BRUnet_Multi_resp_student_5(model_input_shape)
         loss_fn = Huber()
         save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/Knowledge_Distill/SAVED_STUDENT_MODEL_CONFIG'
         results_path = os.path.join(save_path , item.lower())
@@ -352,7 +275,84 @@ for item in config_list:
             if mean_loss < best_loss:
                 best_loss = mean_loss
                     #model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-3)+'_'+str(num_epochs)+'.h5'))
-                model.save_weights(os.path.join(results_path, 'best_model_'+str(1e-2)+'_'+str(1e-4)+'_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_12'+str(1e-2)+'_'+str(1e-4)+'_'+str(num_epochs)+'.h5'))
+            print("validation loss -- {}".format(mean_loss))
+            print(test_loss.result())
+            train_loss.reset_states()
+            test_loss.reset_states()
+    
+
+    if item == "one":
+        def scheduler (epoch):
+            if epoch <=20:
+                lr = 1e-2
+            else:
+                lr = 1e-4
+            return lr
+        model_input_shape = (128,3)
+        model  = BRUnet_Multi_resp_student_5(model_input_shape)
+        loss_fn = Huber()
+        save_path = '/media/acrophase/pose1/charan/BR_Uncertainty/Knowledge_Distill/SAVED_STUDENT_MODEL_CONFIG'
+        results_path = os.path.join(save_path , item.lower())
+        if not(os.path.isdir(results_path)):
+            os.mkdir(results_path)        
+        train_loss = tf.keras.metrics.Mean('train_loss', dtype=tf.float32)
+        test_loss = tf.keras.metrics.Mean('test_loss', dtype=tf.float32)
+
+        current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        train_log_dir = 'evi_student_new/logs/gradient_tape/'+ current_time + '/train'
+        test_log_dir = 'evi_student_new/logs/gradient_tape/' + current_time + '/test'
+        train_summary_writer = tf.summary.create_file_writer(train_log_dir)
+        test_summary_writer = tf.summary.create_file_writer(test_log_dir)
+        
+        train_dataset = tf.data.Dataset.from_tensor_slices((x_train_data , y_train_data, x_train_ref_rr))
+        train_dataset = train_dataset.shuffle(len(x_train_data)).batch(128)
+        test_dataset = tf.data.Dataset.from_tensor_slices((x_test_data , y_test_data, x_test_ref_rr))
+        test_dataset = test_dataset.batch(128)
+        
+        print("Starting the training for : {}".format(item))
+        for epoch in tqdm.tqdm(range(num_epochs)):
+            print("starting the epoch : {}".format(epoch + 1))
+            train_loss_list = []
+            optimizer = Adam(learning_rate = scheduler(epoch))
+            for step, (x_batch_train , y_batch_train, x_batch_train_ref_rr) in enumerate(train_dataset):
+                with tf.GradientTape() as tape:
+                    output, out_rr,_,_,_,_ = model(x_batch_train , training = True)
+                    loss_value = loss_fn(y_batch_train , output)
+                    loss_value_rr = loss_fn(x_batch_train_ref_rr, out_rr)
+                    net_loss_value = loss_value + loss_value_rr
+                    train_loss_list.append(net_loss_value)  
+                grads = tape.gradient(net_loss_value, model.trainable_weights)
+                optimizer.apply_gradients(zip(grads, model.trainable_weights)) 
+                train_loss(net_loss_value)
+                #print(out_rr)
+                #print("###############################################")
+                #print(out_rr)
+                with train_summary_writer.as_default():
+                    tf.summary.scalar('loss', train_loss.result(), step=epoch)
+
+                if step%10 == 0:
+                    print('Epoch [%d/%d], lter [%d] Loss: %.4f'
+                            %(epoch+1, num_epochs, step+1, loss_value))
+            print("net loss -- {}".format(np.mean(np.array(train_loss_list))))
+            test_loss_list = []
+            best_loss = 100000
+
+            for step , (x_batch_test,y_batch_test,x_batch_test_ref_rr) in enumerate(test_dataset):
+                test_output,test_out_rr,_,_,_,_ = model(x_batch_test)
+                test_loss_resp = loss_fn(y_batch_test , test_output)
+                test_loss_rr = loss_fn(x_batch_test_ref_rr , test_out_rr)
+                test_loss_val = test_loss_resp + test_loss_rr
+                test_loss(test_loss_val)
+                test_loss_list.append(test_loss_val)
+                with test_summary_writer.as_default():
+                    tf.summary.scalar('loss', test_loss.result(), step=epoch)
+                #print(test_out_rr)
+            mean_loss = (sum(test_loss_list) / len(test_loss_list)) 
+            if mean_loss < best_loss:
+                best_loss = mean_loss
+                    #model.save_weights(os.path.join(results_path, 'best_model_1'+str(1e-3)+'_'+str(num_epochs)+'.h5'))
+                model.save_weights(os.path.join(results_path, 'best_model_12'+str(1e-2)+'_'+str(1e-4)+'_'+str(num_epochs)+'.h5'))
             print("validation loss -- {}".format(mean_loss))
             print(test_loss.result())
             train_loss.reset_states()
